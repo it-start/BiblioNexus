@@ -28,7 +28,9 @@ export interface Relationship {
 
 export interface CrossReference {
   primary_verse: string;
+  primary_text: string; // Added for DNA Diff
   related_verse: string;
+  related_text: string; // Added for DNA Diff
   connection_type: string; // e.g., "Prophecy Fulfillment", "Thematic Echo", "Direct Quote"
   description: string;
 }

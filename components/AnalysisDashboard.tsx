@@ -5,6 +5,7 @@ import { NetworkGraph } from './Visualizations/NetworkGraph';
 import { DistributionChart } from './Visualizations/DistributionChart';
 import { TimelineChart } from './Visualizations/TimelineChart';
 import { BiblicalMap } from './Visualizations/BiblicalMap';
+import { ScriptureDNA } from './Visualizations/ScriptureDNA';
 import { BookOpen, Share2, Activity, Info, Anchor, GitMerge, FileText, Network, History } from 'lucide-react';
 
 interface AnalysisDashboardProps {
@@ -93,6 +94,11 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         <BiblicalMap locations={data.locations} language={language} />
       )}
 
+      {/* Scripture DNA Visualization (New) */}
+      {data.cross_references && data.cross_references.length > 0 && (
+        <ScriptureDNA references={data.cross_references} language={language} />
+      )}
+
       {/* Scripture Distribution */}
       <div className="grid grid-cols-1 gap-8">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
@@ -105,7 +111,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         </div>
       </div>
 
-      {/* Cross Reference Visualization (New) */}
+      {/* Network Graph for Interconnections */}
       {crossReferenceRelationships.length > 0 && (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
           <div className="flex items-center gap-2 mb-2 text-indigo-900">
@@ -142,35 +148,6 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
           />
         </div>
       </div>
-
-      {/* Cross References List */}
-      {data.cross_references && data.cross_references.length > 0 && (
-        <div className="bg-gradient-to-br from-slate-50 to-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <div className="flex items-center gap-2 mb-6 text-indigo-900">
-            <GitMerge className="w-5 h-5" />
-            <h3 className="text-xl font-serif font-bold">{t.crossRefs}</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {data.cross_references.map((ref, idx) => (
-              <div key={idx} className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                 <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
-                      {ref.connection_type}
-                    </span>
-                 </div>
-                 <div className="flex items-center gap-3 mb-3">
-                   <div className="font-serif font-bold text-gray-800">{ref.primary_verse}</div>
-                   <div className="text-slate-300">→</div>
-                   <div className="font-serif font-bold text-gray-800">{ref.related_verse}</div>
-                 </div>
-                 <p className="text-sm text-gray-600 italic">
-                   "{ref.description}"
-                 </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Citations List (Strict) */}
       <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">

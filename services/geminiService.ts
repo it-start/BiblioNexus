@@ -65,12 +65,14 @@ const analysisSchema: Schema = {
       items: {
         type: Type.OBJECT,
         properties: {
-          primary_verse: { type: Type.STRING, description: "The starting verse (e.g. Isaiah 53:5)" },
-          related_verse: { type: Type.STRING, description: "The connected verse (e.g. 1 Peter 2:24)" },
+          primary_verse: { type: Type.STRING, description: "The starting verse reference (e.g. Isaiah 53:5)" },
+          primary_text: { type: Type.STRING, description: "The actual text content of the primary verse." },
+          related_verse: { type: Type.STRING, description: "The connected verse reference (e.g. 1 Peter 2:24)" },
+          related_text: { type: Type.STRING, description: "The actual text content of the related verse." },
           connection_type: { type: Type.STRING, description: "Specific nature of the link: 'Prophecy Fulfillment', 'Typology', 'Direct Quote', 'Thematic Echo', 'Contrast'" },
           description: { type: Type.STRING, description: "Explanation of the theological connection." }
         },
-        required: ["primary_verse", "related_verse", "connection_type", "description"]
+        required: ["primary_verse", "primary_text", "related_verse", "related_text", "connection_type", "description"]
       }
     },
     timeline: {
@@ -138,7 +140,7 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
        - Look for Old Testament prophecies fulfilled in the New Testament.
        - Look for Typology (shadows vs substance).
        - Look for direct quotations.
-       - Ensure the "connection_type" is descriptive.
+       - IMPORTANT: Provide the ACTUAL TEXT for both the primary and related verses so we can analyze the shared words.
     7. For "timeline", provide a chronological list of 3-7 key historical events directly related to the topic.
     8. For "locations", identify up to 5 key geographical places associated with this topic. Provide accurate coordinates (approximate for ancient sites if necessary) and list associated figures and themes for map overlaying.
     9. For "key_figures", provide a brief list of the main entities mentioned in the relationships section, with their role and a short description.
