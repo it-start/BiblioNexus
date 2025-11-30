@@ -127,6 +127,27 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
       description: r.description 
     }));
 
+    // --- Link Clustering Logic ---
+    // Group links that connect the same pair of nodes (regardless of direction for grouping purposes)
+    const linkGroups: Record<string, any[]> = {};
+    
+    links.forEach((link: any) => {
+      // Sort IDs to treat A->B and B->A as the same visual pair
+      const pairId = [link.source, link.target].sort().join('-');
+      if (!linkGroups[pairId]) {
+        linkGroups[pairId] = [];
+      }
+      linkGroups[pairId].push(link);
+    });
+
+    // Assign indices to links within their group to calculate offsets
+    links.forEach((link: any) => {
+      const pairId = [link.source, link.target].sort().join('-');
+      const group = linkGroups[pairId];
+      link.linkIndex = group.indexOf(link);
+      link.totalInGroup = group.length;
+    });
+
     // Color Scale - use allTypes to ensure consistent colors even when filtered
     const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(allTypes);
 
@@ -136,8 +157,6 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
         .id((d: any) => d.id)
         .distance((d: any) => {
           // Stronger connections = closer distance
-          // Strength 1 (Weak) -> Distance ~250
-          // Strength 10 (Strong) -> Distance ~100
           const strength = d.strength || 5;
           return 270 - (strength * 17);
         })
@@ -155,7 +174,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
       defs.append("marker")
         .attr("id", `arrow-${sanitizedType}`)
         .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 25)
+        .attr("refX", 25) // Offset to account for node radius
         .attr("refY", 0)
         .attr("markerWidth", 6)
         .attr("markerHeight", 6)
@@ -241,7 +260,41 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
     // Simulation Tick
     simulation.on("tick", () => {
       link.attr("d", (d: any) => {
-        return `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`;
+        const x1 = d.source.x;
+        const y1 = d.source.y;
+        const x2 = d.target.x;
+        const y2 = d.target.y;
+
+        // If it's a single link, draw straight line
+        if (d.totalInGroup === 1) {
+          return `M${x1},${y1} L${x2},${y2}`;
+        }
+
+        // For multiple links, calculate curves
+        // Offset logic: calculate a normal vector to the line connecting source and target
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        
+        // Midpoint
+        const mx = (x1 + x2) / 2;
+        const my = (y1 + y2) / 2;
+
+        // Spread factor
+        // 0 -> 0, 1 -> 30, 2 -> -30, etc. or just fan out
+        // Simple fan out: (index - (total-1)/2) * gap
+        const spread = 40; 
+        const offsetMultiplier = (d.linkIndex - (d.totalInGroup - 1) / 2);
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1; // Avoid divide by zero
+        
+        // Normal vector (-dy, dx) normalized
+        const nx = -dy / dist;
+        const ny = dx / dist;
+
+        // Control point for Bezier Curve
+        const cx = mx + nx * offsetMultiplier * spread;
+        const cy = my + ny * offsetMultiplier * spread;
+
+        return `M${x1},${y1} Q${cx},${cy} ${x2},${y2}`;
       });
 
       node.attr("transform", (d: any) => {
