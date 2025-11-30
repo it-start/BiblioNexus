@@ -1,0 +1,5 @@
+{
+  "name": "BiblioNexus: Deep Bible Analyzer",
+  "description": "A comprehensive Bible analysis tool using Gemini 1.5 Pro for deep theological insight, citation verification, visual mapping, and scene generation.",
+  "requestFramePermissions": []
+}
