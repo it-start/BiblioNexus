@@ -102,9 +102,22 @@ const analysisSchema: Schema = {
         },
         required: ["name", "latitude", "longitude", "description", "significance"]
       }
+    },
+    key_figures: {
+      type: Type.ARRAY,
+      description: "List of key people or entities mentioned in the relationships, with descriptions.",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING },
+          role: { type: Type.STRING, description: "Role e.g. King, Prophet, Location, Concept" },
+          description: { type: Type.STRING, description: "Brief bio or definition in context." }
+        },
+        required: ["name", "role", "description"]
+      }
     }
   },
-  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context", "timeline", "locations"]
+  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context", "timeline", "locations", "key_figures"]
 };
 
 export const analyzeBibleTopic = async (topic: string, language: AppLanguage): Promise<AnalysisData> => {
@@ -128,6 +141,7 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
        - Ensure the "connection_type" is descriptive.
     7. For "timeline", provide a chronological list of 3-7 key historical events directly related to the topic.
     8. For "locations", identify up to 5 key geographical places associated with this topic. Provide accurate coordinates (approximate for ancient sites if necessary) and list associated figures and themes for map overlaying.
+    9. For "key_figures", provide a brief list of the main entities mentioned in the relationships section, with their role and a short description.
   `;
 
   try {

@@ -49,6 +49,12 @@ export interface BiblicalLocation {
   associated_themes: string[];
 }
 
+export interface KeyFigure {
+  name: string;
+  role: string;
+  description: string;
+}
+
 export interface AnalysisData {
   summary: string;
   theological_insight: string;
@@ -59,6 +65,7 @@ export interface AnalysisData {
   historical_context: string;
   timeline: TimelineEvent[];
   locations: BiblicalLocation[];
+  key_figures: KeyFigure[];
 }
 
 export interface ChatMessage {

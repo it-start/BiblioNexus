@@ -1,15 +1,16 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as d3 from 'd3';
-import { Relationship, AppLanguage } from '../../types';
-import { Filter, SlidersHorizontal, RefreshCcw } from 'lucide-react';
+import { Relationship, AppLanguage, KeyFigure } from '../../types';
+import { Filter, SlidersHorizontal, RefreshCcw, X, User, ArrowRight } from 'lucide-react';
 
 interface NetworkGraphProps {
   relationships: Relationship[];
   height?: number;
   language?: AppLanguage;
+  nodeDetails?: KeyFigure[];
 }
 
-export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, height = 400, language = AppLanguage.ENGLISH }) => {
+export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, height = 400, language = AppLanguage.ENGLISH, nodeDetails = [] }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -23,7 +24,11 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
     noMatch: language === AppLanguage.RUSSIAN ? "Нет связей, соответствующих фильтрам." : "No connections match your filters.",
     clearFilters: language === AppLanguage.RUSSIAN ? "Очистить фильтры" : "Clear Filters",
     noData: language === AppLanguage.RUSSIAN ? "Данные о связях не найдены." : "No relationship data found.",
-    strength: language === AppLanguage.RUSSIAN ? "Сила" : "Strength"
+    strength: language === AppLanguage.RUSSIAN ? "Сила" : "Strength",
+    details: language === AppLanguage.RUSSIAN ? "Детали" : "Details",
+    connections: language === AppLanguage.RUSSIAN ? "Связи" : "Connections",
+    unknownRole: language === AppLanguage.RUSSIAN ? "Сущность" : "Entity",
+    clickHint: language === AppLanguage.RUSSIAN ? "Нажмите на узел для деталей" : "Click node for details"
   };
 
   // Extract all unique types from the original data for the filter controls
@@ -32,14 +37,23 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
     return Array.from(types).sort();
   }, [relationships]);
 
+  // Lookup map for node details
+  const nodeDetailsMap = useMemo(() => {
+    const map = new Map<string, KeyFigure>();
+    nodeDetails.forEach(d => map.set(d.name, d));
+    return map;
+  }, [nodeDetails]);
+
   // State for filters
   const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
   const [minStrength, setMinStrength] = useState<number>(1);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   
   // Initialize/Reset filters when data changes
   useEffect(() => {
     setSelectedTypes(new Set(relationships.map(r => r.type)));
     setMinStrength(1);
+    setSelectedNodeId(null);
   }, [relationships]);
 
   // Derived filtered data
@@ -48,6 +62,22 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
       selectedTypes.has(r.type) && r.strength >= minStrength
     );
   }, [relationships, selectedTypes, minStrength]);
+
+  // Get selected node details and connections
+  const selectedNodeData = useMemo(() => {
+    if (!selectedNodeId) return null;
+    
+    const details = nodeDetailsMap.get(selectedNodeId);
+    
+    // Find all connections involving this node in the FULL dataset (not just filtered)
+    const relatedLinks = relationships.filter(r => r.source === selectedNodeId || r.target === selectedNodeId);
+    
+    return {
+      id: selectedNodeId,
+      details,
+      links: relatedLinks
+    };
+  }, [selectedNodeId, relationships, nodeDetailsMap]);
 
   const toggleType = (type: string) => {
     const next = new Set(selectedTypes);
@@ -82,12 +112,10 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
 
     // Process nodes and links from FILTERED data
     const nodesSet = new Set<string>();
-    const typesSet = new Set<string>(); // Used for markers
-
+    
     filteredRelationships.forEach(r => {
       nodesSet.add(r.source);
       nodesSet.add(r.target);
-      typesSet.add(r.type);
     });
 
     const nodes = Array.from(nodesSet).map(id => ({ id }));
@@ -172,14 +200,19 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
       .selectAll("g")
       .data(nodes)
       .join("g")
-      .call(drag(simulation) as any);
+      .call(drag(simulation) as any)
+      .style("cursor", "pointer")
+      .on("click", (event, d: any) => {
+        event.stopPropagation(); // Prevent drag from swallowing click immediately if minimal movement
+        setSelectedNodeId(d.id);
+      });
 
     // Node circles
     node.append("circle")
       .attr("r", 12)
       .attr("fill", "white")
-      .attr("stroke", "#4f46e5") // Indigo-600
-      .attr("stroke-width", 2)
+      .attr("stroke", (d: any) => selectedNodeId === d.id ? "#f59e0b" : "#4f46e5") // Amber if selected, Indigo if not
+      .attr("stroke-width", (d: any) => selectedNodeId === d.id ? 4 : 2)
       .on("mouseover", function() { d3.select(this).attr("fill", "#e0e7ff"); })
       .on("mouseout", function() { d3.select(this).attr("fill", "white"); });
 
@@ -227,7 +260,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
         .on("end", dragended);
     }
 
-  }, [filteredRelationships, height, allTypes, t.strength]);
+  }, [filteredRelationships, height, allTypes, t.strength, selectedNodeId]);
 
   // Color helper for badges (using same D3 scheme logic)
   const getColor = (type: string) => {
@@ -328,12 +361,81 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
           ) : (
             <svg ref={svgRef} className="w-full block" />
           )}
+
+          {/* Helper hint */}
+          {!selectedNodeId && filteredRelationships.length > 0 && (
+             <div className="absolute bottom-2 left-2 text-[10px] text-gray-400 bg-white/80 px-2 py-1 rounded pointer-events-none">
+               {t.clickHint}
+             </div>
+          )}
         </div>
+        
+        {/* Tooltip */}
         <div 
           ref={tooltipRef}
           className="fixed pointer-events-none bg-black/80 text-white text-xs p-2 rounded z-50 transition-opacity opacity-0 max-w-xs shadow-xl border border-white/10"
           style={{backdropFilter: 'blur(4px)'}}
         />
+
+        {/* Side Panel (Slide Over) */}
+        {selectedNodeData && (
+          <div className="absolute inset-y-0 right-0 w-80 bg-white/95 backdrop-blur-md shadow-xl border-l border-stone-200 transform transition-transform duration-300 ease-out overflow-y-auto">
+             <div className="p-4">
+               <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h4 className="font-serif font-bold text-xl text-gray-900 leading-tight">{selectedNodeData.id}</h4>
+                    <span className="text-xs text-indigo-600 uppercase tracking-wide font-semibold">
+                      {selectedNodeData.details?.role || t.unknownRole}
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedNodeId(null)}
+                    className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+               </div>
+
+               {selectedNodeData.details?.description && (
+                 <div className="mb-6 text-sm text-gray-600 leading-relaxed bg-stone-50 p-3 rounded-lg border border-stone-100">
+                   {selectedNodeData.details.description}
+                 </div>
+               )}
+
+               <div>
+                 <h5 className="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2 pb-2 border-b border-gray-100">
+                    <User size={14} className="text-gray-400"/> {t.connections}
+                 </h5>
+                 <div className="space-y-3">
+                   {selectedNodeData.links.map((link, idx) => {
+                     const isSource = link.source === selectedNodeData.id;
+                     const otherNode = isSource ? link.target : link.source;
+                     const color = getColor(link.type);
+                     
+                     return (
+                       <div key={idx} className="group cursor-pointer" onClick={() => setSelectedNodeId(otherNode)}>
+                         <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-semibold px-1.5 py-0.5 rounded border" style={{ borderColor: color, color: color, backgroundColor: 'white' }}>
+                              {link.type}
+                            </span>
+                            <ArrowRight size={12} className="text-gray-300" />
+                            <span className="text-sm font-medium text-gray-700 group-hover:text-indigo-600 transition-colors">
+                              {otherNode}
+                            </span>
+                         </div>
+                         {link.description && (
+                           <p className="text-xs text-gray-500 pl-1 border-l-2 border-gray-100 ml-1">
+                             {link.description}
+                           </p>
+                         )}
+                       </div>
+                     );
+                   })}
+                 </div>
+               </div>
+             </div>
+          </div>
+        )}
       </div>
     </div>
   );

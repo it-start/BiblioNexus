@@ -135,7 +135,11 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
             <Share2 className="w-5 h-5" />
             <h3 className="text-lg font-serif font-bold">{t.figures}</h3>
           </div>
-          <NetworkGraph relationships={data.relationships} language={language} />
+          <NetworkGraph 
+            relationships={data.relationships} 
+            language={language} 
+            nodeDetails={data.key_figures}
+          />
         </div>
       </div>
 
