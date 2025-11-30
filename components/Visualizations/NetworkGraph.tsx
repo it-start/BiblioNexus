@@ -8,15 +8,18 @@ interface NetworkGraphProps {
 
 export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships }) => {
   const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!relationships || relationships.length === 0 || !svgRef.current) return;
+    if (!relationships || relationships.length === 0 || !svgRef.current || !containerRef.current) return;
 
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove(); // Clear previous render
 
-    const width = svgRef.current.clientWidth;
-    const height = 300;
+    const width = containerRef.current.clientWidth;
+    const height = 400;
+    
+    svg.attr("width", width).attr("height", height);
 
     // Process nodes and links
     const nodesSet = new Set<string>();
@@ -26,45 +29,90 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships }) => 
     });
 
     const nodes = Array.from(nodesSet).map(id => ({ id }));
-    const links = relationships.map(r => ({ source: r.source, target: r.target, type: r.type }));
+    const links = relationships.map(r => ({ source: r.source, target: r.target, type: r.type, strength: r.strength }));
 
     // Simulation
     const simulation = d3.forceSimulation(nodes as any)
-      .force("link", d3.forceLink(links).id((d: any) => d.id).distance(100))
-      .force("charge", d3.forceManyBody().strength(-200))
+      .force("link", d3.forceLink(links).id((d: any) => d.id).distance(150))
+      .force("charge", d3.forceManyBody().strength(-400))
       .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collide", d3.forceCollide().radius(30));
+      .force("collide", d3.forceCollide().radius(40));
 
-    // Render lines
-    const link = svg.append("g")
-      .attr("stroke", "#999")
-      .attr("stroke-opacity", 0.6)
+    // Arrow marker
+    svg.append("defs").selectAll("marker")
+      .data(["end"])
+      .enter().append("marker")
+      .attr("id", "arrow")
+      .attr("viewBox", "0 -5 10 10")
+      .attr("refX", 25)
+      .attr("refY", 0)
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .attr("orient", "auto")
+      .append("path")
+      .attr("d", "M0,-5L10,0L0,5")
+      .attr("fill", "#9ca3af");
+
+    const g = svg.append("g");
+
+    // Zoom behavior
+    const zoom = d3.zoom()
+      .scaleExtent([0.1, 4])
+      .on("zoom", (event) => {
+        g.attr("transform", event.transform);
+      });
+    
+    svg.call(zoom as any);
+
+    // Render links
+    const linkGroup = g.append("g").attr("class", "links");
+    const link = linkGroup
       .selectAll("line")
       .data(links)
       .join("line")
-      .attr("stroke-width", 1.5);
+      .attr("stroke", "#cbd5e1")
+      .attr("stroke-width", 2)
+      .attr("marker-end", "url(#arrow)");
+
+    // Link Labels
+    const linkLabel = linkGroup
+      .selectAll(".link-label")
+      .data(links)
+      .join("text")
+      .attr("class", "link-label")
+      .text(d => d.type)
+      .attr("font-size", 9)
+      .attr("fill", "#64748b")
+      .attr("text-anchor", "middle")
+      .style("background", "white"); // Basic style, background rect requires more complex SVG
 
     // Render nodes
-    const node = svg.append("g")
-      .attr("stroke", "#fff")
-      .attr("stroke-width", 1.5)
-      .selectAll("circle")
+    const node = g.append("g")
+      .attr("class", "nodes")
+      .selectAll("g")
       .data(nodes)
-      .join("circle")
-      .attr("r", 8)
-      .attr("fill", "#6366f1") // Indigo-500
+      .join("g")
       .call(drag(simulation) as any);
 
-    // Labels
-    const labels = svg.append("g")
-      .selectAll("text")
-      .data(nodes)
-      .join("text")
+    // Node circles
+    node.append("circle")
+      .attr("r", 15)
+      .attr("fill", "#e0e7ff")
+      .attr("stroke", "#6366f1")
+      .attr("stroke-width", 2)
+      .on("mouseover", function() { d3.select(this).attr("fill", "#c7d2fe"); })
+      .on("mouseout", function() { d3.select(this).attr("fill", "#e0e7ff"); });
+
+    // Node labels
+    node.append("text")
       .text(d => d.id)
-      .attr("font-size", 10)
-      .attr("dx", 12)
-      .attr("dy", 4)
-      .attr("fill", "#374151");
+      .attr("font-size", 12)
+      .attr("font-weight", "600")
+      .attr("dx", 20)
+      .attr("dy", 5)
+      .attr("fill", "#1e293b")
+      .style("pointer-events", "none")
+      .style("text-shadow", "0 1px 2px white");
 
     // Simulation Tick
     simulation.on("tick", () => {
@@ -73,14 +121,13 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships }) => 
         .attr("y1", (d: any) => d.source.y)
         .attr("x2", (d: any) => d.target.x)
         .attr("y2", (d: any) => d.target.y);
+      
+      linkLabel
+        .attr("x", (d: any) => (d.source.x + d.target.x) / 2)
+        .attr("y", (d: any) => (d.source.y + d.target.y) / 2 - 5);
 
       node
-        .attr("cx", (d: any) => d.x)
-        .attr("cy", (d: any) => d.y);
-
-      labels
-        .attr("x", (d: any) => d.x)
-        .attr("y", (d: any) => d.y);
+        .attr("transform", (d: any) => `translate(${d.x},${d.y})`);
     });
 
     function drag(simulation: d3.Simulation<any, undefined>) {
@@ -112,8 +159,8 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships }) => 
   if (!relationships || relationships.length === 0) return <div className="h-64 flex items-center justify-center text-gray-400">No relationship data found.</div>;
 
   return (
-    <div className="w-full border rounded-lg overflow-hidden bg-slate-50">
-       <svg ref={svgRef} className="w-full h-[300px]" />
+    <div ref={containerRef} className="w-full border rounded-lg overflow-hidden bg-slate-50 cursor-grab active:cursor-grabbing">
+       <svg ref={svgRef} className="w-full h-[400px]" />
     </div>
   );
 };

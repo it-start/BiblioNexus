@@ -25,12 +25,20 @@ export interface Relationship {
   strength: number;
 }
 
+export interface CrossReference {
+  primary_verse: string;
+  related_verse: string;
+  connection_type: string; // e.g., "Prophecy Fulfillment", "Thematic Echo", "Direct Quote"
+  description: string;
+}
+
 export interface AnalysisData {
   summary: string;
   theological_insight: string;
   citations: Citation[];
   themes: Theme[];
   relationships: Relationship[];
+  cross_references: CrossReference[];
   historical_context: string;
 }
 

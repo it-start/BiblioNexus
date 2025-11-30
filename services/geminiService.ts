@@ -57,9 +57,23 @@ const analysisSchema: Schema = {
         },
         required: ["source", "target", "type", "strength"]
       }
+    },
+    cross_references: {
+      type: Type.ARRAY,
+      description: "Deep links between different parts of the bible related to this topic (e.g., OT prophecy fulfilled in NT).",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          primary_verse: { type: Type.STRING, description: "The starting verse (e.g. Isaiah 53:5)" },
+          related_verse: { type: Type.STRING, description: "The connected verse (e.g. 1 Peter 2:24)" },
+          connection_type: { type: Type.STRING, description: "Nature of the link: 'Prophecy', 'Contrast', 'Fulfillment', 'Thematic'" },
+          description: { type: Type.STRING, description: "Short explanation of the connection." }
+        },
+        required: ["primary_verse", "related_verse", "connection_type", "description"]
+      }
     }
   },
-  required: ["summary", "theological_insight", "citations", "themes", "relationships", "historical_context"]
+  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context"]
 };
 
 export const analyzeBibleTopic = async (topic: string, language: AppLanguage): Promise<AnalysisData> => {
@@ -76,6 +90,7 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
     3. Provide historical context where applicable.
     4. For "relationships", map out key figures connected to this topic.
     5. Identify major themes and their prevalence intensity (score).
+    6. For "cross_references", find deep connections between Old and New Testaments or parallel passages that illuminate the topic. Explore how scripture interprets scripture.
   `;
 
   try {
@@ -102,10 +117,6 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
 export const generateBiblicalImage = async (prompt: string, size: ImageSize): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: getApiKey() });
   
-  // Map size to supported API values if needed, or pass through if supported.
-  // The user prompt specifically requested 1K, 2K, 4K affordance.
-  // gemini-3-pro-image-preview supports these via 'imageSize' param.
-  
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-image-preview',
@@ -114,7 +125,7 @@ export const generateBiblicalImage = async (prompt: string, size: ImageSize): Pr
       },
       config: {
         imageConfig: {
-            imageSize: size, // '1K' | '2K' | '4K'
+            imageSize: size, 
             aspectRatio: "16:9" 
         }
       }
