@@ -175,9 +175,33 @@ const analysisSchema: Schema = {
         summary: { type: Type.STRING, description: "Overview of this genetic/theological structure." }
       },
       required: ["sequence_data", "codons", "summary"]
+    },
+    etymology: {
+      type: Type.OBJECT,
+      description: "Etymological Spectrometry: Breakdown of the topic into original Hebrew/Greek roots (Source Code).",
+      properties: {
+        target_word: { type: Type.STRING, description: "The main concept being analyzed (e.g. Love, Sin)" },
+        roots: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              original_word: { type: Type.STRING, description: "Original word in Hebrew/Greek alphabet" },
+              language: { type: Type.STRING, enum: ['Hebrew', 'Greek', 'Aramaic'] },
+              transliteration: { type: Type.STRING, description: "English phonetic spelling" },
+              meaning: { type: Type.STRING, description: "Literal definition of the root" },
+              usage_count: { type: Type.INTEGER, description: "Approximate occurrences in the Bible" },
+              usage_context: { type: Type.STRING, description: "Where else this word is used (e.g. 'Used in Psalms for...')"}
+            },
+            required: ["original_word", "language", "transliteration", "meaning", "usage_count", "usage_context"]
+          }
+        },
+        synthesis: { type: Type.STRING, description: "How these diverse roots combine to form the full biblical concept." }
+      },
+      required: ["target_word", "roots", "synthesis"]
     }
   },
-  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context", "timeline", "locations", "key_figures", "algorithmic_analysis", "bio_theology"]
+  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context", "timeline", "locations", "key_figures", "algorithmic_analysis", "bio_theology", "etymology"]
 };
 
 export const analyzeBibleTopic = async (topic: string, language: AppLanguage): Promise<AnalysisData> => {
@@ -211,7 +235,12 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
           * G (Guanine) = Glory / Spirit / Life / Power
           * T (Thymine) = Truth / Word / Testimony / Logos
         - Extract a sequence of 8-12 bases from the topic's core scriptures.
-        - Group them into "Codons" (triplets) and define what "Spiritual Amino Acid" (Result) they produce (e.g., A+T+C might produce "Justification").
+        - Group them into "Codons" (triplets) and define what "Spiritual Amino Acid" (Result) they produce.
+    12. For "etymology" (Spectrometry), perform a "Source Code" analysis.
+        - Identify the primary English/Russian concept.
+        - Break it down into its underlying Hebrew (OT) and Greek (NT) root words ("Isotopes").
+        - For example, if the topic is "Love", analyze *Ahavah*, *Hesed* (Hebrew) and *Agape*, *Phileo* (Greek).
+        - Explain the nuance of each root and how often it appears.
   `;
 
   try {

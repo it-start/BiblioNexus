@@ -99,6 +99,23 @@ export interface BioTheology {
   summary: string; // Explanation of the "genetic" makeup of this passage
 }
 
+// --- Etymological Spectrometry Types (Source Code) ---
+
+export interface EtymologyRoot {
+  original_word: string; // e.g. "Hesed" or "Agape"
+  language: 'Hebrew' | 'Greek' | 'Aramaic';
+  transliteration: string;
+  meaning: string;
+  usage_count: number; // Approx occurrences in bible
+  usage_context: string; // Where else it is used
+}
+
+export interface EtymologyAnalysis {
+  target_word: string; // The concept being analyzed (e.g. "Love")
+  roots: EtymologyRoot[];
+  synthesis: string; // How these roots combine to form the full biblical meaning
+}
+
 // --- Multi-Agent Peer Review Types ---
 
 export interface PeerReview {
@@ -124,6 +141,7 @@ export interface AnalysisData {
   key_figures: KeyFigure[];
   algorithmic_analysis: AlgorithmicAnalysis;
   bio_theology?: BioTheology; // New field for DNA Analysis
+  etymology?: EtymologyAnalysis; // New field for Source Code Analysis
   peer_review?: PeerReview; 
 }
 

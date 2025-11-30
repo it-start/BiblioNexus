@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { AnalysisData, Relationship, AppLanguage } from '../types';
 import { ThemeChart } from './Visualizations/ThemeChart';
@@ -12,6 +11,7 @@ import { BiblicalAlgorithm } from './Visualizations/BiblicalAlgorithm';
 import { PropheticArcs } from './Visualizations/PropheticArcs';
 import { PatternCluster } from './Visualizations/PatternCluster';
 import { BioGeneticAnalysis } from './Visualizations/BioGeneticAnalysis';
+import { EtymologicalPrism } from './Visualizations/EtymologicalPrism';
 import { PeerReviewPanel } from './PeerReviewPanel';
 import { BookOpen, Share2, Activity, Info, Anchor, FileText, Network, History } from 'lucide-react';
 
@@ -77,10 +77,25 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         </div>
       </div>
 
-      {/* Peer Review Panel (Truth Finding) - NEW */}
+      {/* Peer Review Panel (Truth Finding) */}
       {data.peer_review && (
         <div className="my-8">
           <PeerReviewPanel review={data.peer_review} language={language} />
+        </div>
+      )}
+
+      {/* Deep Insight */}
+      <div className="bg-indigo-50 p-8 rounded-xl border border-indigo-100">
+        <h3 className="text-xl font-serif font-bold text-indigo-900 mb-4">{t.insight}</h3>
+        <p className="text-indigo-900/80 leading-relaxed font-serif text-lg">
+          {data.theological_insight}
+        </p>
+      </div>
+
+      {/* Etymological Spectrometry (Source Code Analysis) - NEW */}
+      {data.etymology && (
+        <div className="my-8">
+          <EtymologicalPrism data={data.etymology} language={language} />
         </div>
       )}
 
@@ -94,14 +109,6 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
           <TimelineChart events={data.timeline} />
         </div>
       )}
-
-      {/* Deep Insight */}
-      <div className="bg-indigo-50 p-8 rounded-xl border border-indigo-100">
-        <h3 className="text-xl font-serif font-bold text-indigo-900 mb-4">{t.insight}</h3>
-        <p className="text-indigo-900/80 leading-relaxed font-serif text-lg">
-          {data.theological_insight}
-        </p>
-      </div>
 
       {/* Prophetic Arcs (Divine Trajectory) */}
       {data.cross_references && data.cross_references.length > 0 && (
