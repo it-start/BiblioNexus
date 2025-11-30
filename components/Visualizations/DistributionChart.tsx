@@ -15,7 +15,7 @@ export const DistributionChart: React.FC<DistributionChartProps> = ({ citations 
   }, {} as Record<string, number>);
 
   const data = Object.entries(dataMap)
-    .map(([name, count]) => ({ name, count: count as number }))
+    .map(([name, count]) => ({ name, count: Number(count) }))
     .sort((a, b) => b.count - a.count); // Sort by frequency
 
   if (data.length === 0) return null;

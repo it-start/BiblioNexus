@@ -23,12 +23,19 @@ export interface Relationship {
   target: string;
   type: string;
   strength: number;
+  description?: string; // Context for the relationship
 }
 
 export interface CrossReference {
   primary_verse: string;
   related_verse: string;
   connection_type: string; // e.g., "Prophecy Fulfillment", "Thematic Echo", "Direct Quote"
+  description: string;
+}
+
+export interface TimelineEvent {
+  year: string;
+  event: string;
   description: string;
 }
 
@@ -40,6 +47,7 @@ export interface AnalysisData {
   relationships: Relationship[];
   cross_references: CrossReference[];
   historical_context: string;
+  timeline: TimelineEvent[];
 }
 
 export interface ChatMessage {

@@ -112,7 +112,7 @@ function App() {
         {data && (
           <div className="animate-fade-in-up">
             <AnalysisDashboard data={data} />
-            <ImageGenerator />
+            <ImageGenerator citations={data.citations} />
           </div>
         )}
       </main>

@@ -1,15 +1,26 @@
 import React from 'react';
-import { AnalysisData } from '../types';
+import { AnalysisData, Relationship } from '../types';
 import { ThemeChart } from './Visualizations/ThemeChart';
 import { NetworkGraph } from './Visualizations/NetworkGraph';
 import { DistributionChart } from './Visualizations/DistributionChart';
-import { BookOpen, Share2, Activity, Info, Anchor, GitMerge, FileText } from 'lucide-react';
+import { TimelineChart } from './Visualizations/TimelineChart';
+import { BookOpen, Share2, Activity, Info, Anchor, GitMerge, FileText, Network, History } from 'lucide-react';
 
 interface AnalysisDashboardProps {
   data: AnalysisData;
 }
 
 export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) => {
+  
+  // Transform cross_references to Relationship format for graph visualization
+  const crossReferenceRelationships: Relationship[] = data.cross_references?.map(ref => ({
+    source: ref.primary_verse,
+    target: ref.related_verse,
+    type: ref.connection_type,
+    strength: 5, // Default strength
+    description: ref.description
+  })) || [];
+
   return (
     <div className="space-y-8 animate-fade-in pb-20">
       
@@ -38,6 +49,17 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) =>
         </div>
       </div>
 
+      {/* Historical Timeline */}
+      {data.timeline && data.timeline.length > 0 && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+          <div className="flex items-center gap-2 mb-6 text-amber-800">
+            <History className="w-5 h-5" />
+            <h3 className="text-xl font-serif font-bold">Timeline of Events</h3>
+          </div>
+          <TimelineChart events={data.timeline} />
+        </div>
+      )}
+
       {/* Deep Insight */}
       <div className="bg-indigo-50 p-8 rounded-xl border border-indigo-100">
         <h3 className="text-xl font-serif font-bold text-indigo-900 mb-4">Deep Theological Insight</h3>
@@ -46,7 +68,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) =>
         </p>
       </div>
 
-      {/* Scripture Distribution (New) */}
+      {/* Scripture Distribution */}
       <div className="grid grid-cols-1 gap-8">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
            <div className="flex items-center gap-2 mb-6 text-indigo-800">
@@ -57,6 +79,19 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) =>
           <DistributionChart citations={data.citations} />
         </div>
       </div>
+
+      {/* Cross Reference Visualization (New) */}
+      {crossReferenceRelationships.length > 0 && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+          <div className="flex items-center gap-2 mb-2 text-indigo-900">
+            <Network className="w-5 h-5" />
+            <h3 className="text-lg font-serif font-bold">Scriptural Interconnections</h3>
+          </div>
+          <p className="text-sm text-gray-500 mb-6">Visualizing how scripture interprets scripture (e.g., Prophecy → Fulfillment).</p>
+          <NetworkGraph relationships={crossReferenceRelationships} height={500} />
+          <div className="mt-2 text-xs text-center text-gray-400 italic">Hover over connection lines to see connection details.</div>
+        </div>
+      )}
 
       {/* Visualization Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -69,22 +104,22 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) =>
           <ThemeChart data={data.themes} />
         </div>
 
-        {/* Relationship Network */}
+        {/* Relationship Network (People) */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
           <div className="flex items-center gap-2 mb-6 text-indigo-800">
             <Share2 className="w-5 h-5" />
-            <h3 className="text-lg font-serif font-bold">Connection Map</h3>
+            <h3 className="text-lg font-serif font-bold">Key Figures Network</h3>
           </div>
           <NetworkGraph relationships={data.relationships} />
         </div>
       </div>
 
-      {/* Cross References (New Section) */}
+      {/* Cross References List */}
       {data.cross_references && data.cross_references.length > 0 && (
         <div className="bg-gradient-to-br from-slate-50 to-white p-6 rounded-xl shadow-sm border border-slate-200">
           <div className="flex items-center gap-2 mb-6 text-indigo-900">
             <GitMerge className="w-5 h-5" />
-            <h3 className="text-xl font-serif font-bold">Deep Cross-References</h3>
+            <h3 className="text-xl font-serif font-bold">Deep Cross-Reference Details</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {data.cross_references.map((ref, idx) => (
@@ -96,7 +131,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) =>
                  </div>
                  <div className="flex items-center gap-3 mb-3">
                    <div className="font-serif font-bold text-gray-800">{ref.primary_verse}</div>
-                   <div className="h-px bg-slate-300 flex-1"></div>
+                   <div className="text-slate-300">→</div>
                    <div className="font-serif font-bold text-gray-800">{ref.related_verse}</div>
                  </div>
                  <p className="text-sm text-gray-600 italic">

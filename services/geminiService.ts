@@ -53,7 +53,8 @@ const analysisSchema: Schema = {
           source: { type: Type.STRING, description: "Name of person/entity" },
           target: { type: Type.STRING, description: "Name of related person/entity" },
           type: { type: Type.STRING, description: "Type of relationship (e.g., Father, Enemy, Ally)" },
-          strength: { type: Type.INTEGER, description: "Strength of connection 1-10" }
+          strength: { type: Type.INTEGER, description: "Strength of connection 1-10" },
+          description: { type: Type.STRING, description: "Brief context of this relationship", nullable: true }
         },
         required: ["source", "target", "type", "strength"]
       }
@@ -66,14 +67,27 @@ const analysisSchema: Schema = {
         properties: {
           primary_verse: { type: Type.STRING, description: "The starting verse (e.g. Isaiah 53:5)" },
           related_verse: { type: Type.STRING, description: "The connected verse (e.g. 1 Peter 2:24)" },
-          connection_type: { type: Type.STRING, description: "Nature of the link: 'Prophecy', 'Contrast', 'Fulfillment', 'Thematic'" },
-          description: { type: Type.STRING, description: "Short explanation of the connection." }
+          connection_type: { type: Type.STRING, description: "Specific nature of the link: 'Prophecy Fulfillment', 'Typology', 'Direct Quote', 'Thematic Echo', 'Contrast'" },
+          description: { type: Type.STRING, description: "Explanation of the theological connection." }
         },
         required: ["primary_verse", "related_verse", "connection_type", "description"]
       }
+    },
+    timeline: {
+      type: Type.ARRAY,
+      description: "A chronological timeline of key historical events associated with this topic.",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+            year: { type: Type.STRING, description: "The date/year (e.g. '1000 BC', 'c. 33 AD')" },
+            event: { type: Type.STRING, description: "The event title" },
+            description: { type: Type.STRING, description: "Short explanation of the event" }
+        },
+        required: ["year", "event", "description"]
+      }
     }
   },
-  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context"]
+  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context", "timeline"]
 };
 
 export const analyzeBibleTopic = async (topic: string, language: AppLanguage): Promise<AnalysisData> => {
@@ -90,7 +104,12 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
     3. Provide historical context where applicable.
     4. For "relationships", map out key figures connected to this topic.
     5. Identify major themes and their prevalence intensity (score).
-    6. For "cross_references", find deep connections between Old and New Testaments or parallel passages that illuminate the topic. Explore how scripture interprets scripture.
+    6. For "cross_references", find deep, specific connections. Focus on "Scripture interpreting Scripture". 
+       - Look for Old Testament prophecies fulfilled in the New Testament.
+       - Look for Typology (shadows vs substance).
+       - Look for direct quotations.
+       - Ensure the "connection_type" is descriptive.
+    7. For "timeline", provide a chronological list of 3-7 key historical events directly related to the topic.
   `;
 
   try {
@@ -100,7 +119,7 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
       config: {
         responseMimeType: "application/json",
         responseSchema: analysisSchema,
-        systemInstruction: "You are a rigorous biblical scholar and data analyst. Your goal is to provide accurate, cited, and deep structured analysis of biblical entities. Never invent scripture.",
+        systemInstruction: "You are a rigorous biblical scholar and data analyst. Your goal is to provide accurate, cited, and deep structured analysis of biblical entities. Never invent scripture. Focus on the organic unity of the Bible.",
       }
     });
 
