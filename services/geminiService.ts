@@ -117,9 +117,42 @@ const analysisSchema: Schema = {
         },
         required: ["name", "role", "description"]
       }
+    },
+    algorithmic_analysis: {
+      type: Type.OBJECT,
+      description: "Analyze the topic as if it were computer code or an algorithm (Bible as Code).",
+      properties: {
+        variables: {
+          type: Type.ARRAY,
+          items: {
+             type: Type.OBJECT,
+             properties: {
+               name: { type: Type.STRING, description: "Variable name (e.g., HeartState, Covenant)" },
+               type: { type: Type.STRING, enum: ['constant', 'mutable', 'global'] },
+               value: { type: Type.STRING, description: "Current value or state description" },
+               description: { type: Type.STRING }
+             },
+             required: ["name", "type", "value", "description"]
+          }
+        },
+        logic_flow: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              type: { type: Type.STRING, enum: ['condition', 'loop', 'action', 'assignment'] },
+              code: { type: Type.STRING, description: "Pseudocode representation (e.g. while(sin) { judgment++ })" },
+              explanation: { type: Type.STRING, description: "Theological explanation of this logic step" },
+              indent_level: { type: Type.INTEGER, description: "0 for root, 1 for nested, etc." }
+            },
+            required: ["type", "code", "explanation", "indent_level"]
+          }
+        }
+      },
+      required: ["variables", "logic_flow"]
     }
   },
-  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context", "timeline", "locations", "key_figures"]
+  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context", "timeline", "locations", "key_figures", "algorithmic_analysis"]
 };
 
 export const analyzeBibleTopic = async (topic: string, language: AppLanguage): Promise<AnalysisData> => {
@@ -144,6 +177,11 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
     7. For "timeline", provide a chronological list of 3-7 key historical events directly related to the topic.
     8. For "locations", identify up to 5 key geographical places associated with this topic. Provide accurate coordinates (approximate for ancient sites if necessary) and list associated figures and themes for map overlaying.
     9. For "key_figures", provide a brief list of the main entities mentioned in the relationships section, with their role and a short description.
+    10. For "algorithmic_analysis", abstract the theological logic of the topic into pseudocode variables and flow control.
+        - Define "Constants" (e.g., God's Attributes, Covenants).
+        - Define "Mutable Variables" (e.g., Human Heart, National Status).
+        - Define the "Logic Flow" (e.g., Cycles of Judges: Sin -> Servitude -> Supplication -> Salvation).
+        - Use programming concepts like loops (while), conditions (if/else), and assignments (=).
   `;
 
   try {

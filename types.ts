@@ -57,6 +57,27 @@ export interface KeyFigure {
   description: string;
 }
 
+// --- Bible as Code Types ---
+
+export interface LogicVariable {
+  name: string;
+  type: 'constant' | 'mutable' | 'global';
+  value: string; // e.g., "Unconditional", "Hardened", "Grace"
+  description: string;
+}
+
+export interface LogicStep {
+  type: 'condition' | 'loop' | 'action' | 'assignment';
+  code: string; // e.g., "if (repentance) { forgiveness = true }"
+  explanation: string;
+  indent_level: number; // For visual hierarchy 0, 1, 2...
+}
+
+export interface AlgorithmicAnalysis {
+  variables: LogicVariable[];
+  logic_flow: LogicStep[];
+}
+
 export interface AnalysisData {
   summary: string;
   theological_insight: string;
@@ -68,6 +89,7 @@ export interface AnalysisData {
   timeline: TimelineEvent[];
   locations: BiblicalLocation[];
   key_figures: KeyFigure[];
+  algorithmic_analysis: AlgorithmicAnalysis; // New field
 }
 
 export interface ChatMessage {
