@@ -1,16 +1,6 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { AppLanguage, AnalysisData, ImageSize } from "../types";
 
-// Helper to get API key securely
-const getApiKey = (): string => {
-  const key = process.env.API_KEY;
-  if (!key) {
-    console.error("API_KEY is missing in environment variables.");
-    throw new Error("API Key is missing");
-  }
-  return key;
-};
-
 // Analysis Schema
 const analysisSchema: Schema = {
   type: Type.OBJECT,
@@ -156,7 +146,8 @@ const analysisSchema: Schema = {
 };
 
 export const analyzeBibleTopic = async (topic: string, language: AppLanguage): Promise<AnalysisData> => {
-  const ai = new GoogleGenAI({ apiKey: getApiKey() });
+  // Fix: Use process.env.API_KEY directly as per guidelines
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const prompt = `
     Analyze the following biblical topic, person, or passage strictly based on the canonical Bible.
@@ -206,7 +197,8 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
 };
 
 export const generateBiblicalImage = async (prompt: string, size: ImageSize): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: getApiKey() });
+  // Fix: Use process.env.API_KEY directly
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const response = await ai.models.generateContent({
@@ -238,7 +230,8 @@ export const generateBiblicalImage = async (prompt: string, size: ImageSize): Pr
 
 // Chat Service
 export const createChatSession = (language: AppLanguage) => {
-  const ai = new GoogleGenAI({ apiKey: getApiKey() });
+  // Fix: Use process.env.API_KEY directly
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const instruction = language === AppLanguage.RUSSIAN
     ? "Вы — полезный помощник по изучению Библии. Используйте контекст Библии для ответов на вопросы. Будьте вежливы, мудры и по возможности предоставляйте ссылки на стихи. Отвечайте на русском языке."
