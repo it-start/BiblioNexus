@@ -263,7 +263,7 @@ export const PropheticArcs: React.FC<PropheticArcsProps> = ({ data, language = A
         )}
 
         <div className="absolute bottom-2 right-4 text-[10px] text-slate-600 italic">
-          *Canonical Axis (Gen -> Rev)
+          *Canonical Axis (Gen -&gt; Rev)
         </div>
       </div>
     </div>
