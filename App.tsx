@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Search, Book, Menu, Globe } from 'lucide-react';
 import { AnalysisDashboard } from './components/AnalysisDashboard';
@@ -5,6 +6,7 @@ import { ChatBot } from './components/ChatBot';
 import { ImageGenerator } from './components/ImageGenerator';
 import { ParallelsGuide } from './components/ParallelsGuide';
 import { analyzeBibleTopic } from './services/geminiService';
+import { getMistralReview } from './services/mistralService';
 import { AnalysisData, AppLanguage } from './types';
 
 function App() {
@@ -12,6 +14,7 @@ function App() {
   const [language, setLanguage] = useState<AppLanguage>(AppLanguage.ENGLISH);
   const [data, setData] = useState<AnalysisData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [reviewLoading, setReviewLoading] = useState(false); // State for secondary AI
   const [error, setError] = useState<string | null>(null);
 
   const t = {
@@ -23,7 +26,8 @@ function App() {
       ? "Строгий богословский анализ • Проверенные цитаты • Визуальные карты • Генерация сцен" 
       : "Strict theological analysis • Verified citations • Visual mapping • Scene generation",
     errorTitle: language === AppLanguage.RUSSIAN ? "Ошибка анализа" : "Analysis Error",
-    errorMessage: language === AppLanguage.RUSSIAN ? "Не удалось проанализировать эту тему. Пожалуйста, убедитесь, что она связана с Библией, и повторите попытку." : "Unable to analyze this topic. Please ensure it is related to the Bible and try again."
+    errorMessage: language === AppLanguage.RUSSIAN ? "Не удалось проанализировать эту тему. Пожалуйста, убедитесь, что она связана с Библией, и повторите попытку." : "Unable to analyze this topic. Please ensure it is related to the Bible and try again.",
+    reviewing: language === AppLanguage.RUSSIAN ? "Совет ИИ проводит перекрестную проверку..." : "AI Council is cross-referencing..."
   };
 
   const handleSearch = async () => {
@@ -34,13 +38,26 @@ function App() {
     setData(null); // Clear previous results to show loading state cleanly
 
     try {
+      // 1. Primary Analysis (Gemini)
       const result = await analyzeBibleTopic(query, language);
       setData(result);
+      setLoading(false);
+
+      // 2. Peer Review (Mistral) - Non-blocking or subtle loading state
+      if (process.env.MISTRAL_API_KEY) {
+        setReviewLoading(true);
+        const review = await getMistralReview(query, result, language);
+        if (review) {
+          setData(prev => prev ? { ...prev, peer_review: review } : null);
+        }
+        setReviewLoading(false);
+      }
+
     } catch (err) {
       console.error(err);
       setError(t.errorMessage);
-    } finally {
       setLoading(false);
+      setReviewLoading(false);
     }
   };
 
@@ -117,6 +134,13 @@ function App() {
              <p className="mt-4 text-gray-500 text-sm">
                {t.features}
              </p>
+          )}
+
+          {reviewLoading && (
+            <div className="mt-4 flex items-center justify-center gap-2 text-indigo-600 bg-indigo-50 py-2 px-4 rounded-full inline-flex text-sm animate-pulse">
+               <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"></div>
+               {t.reviewing}
+            </div>
           )}
         </div>
 

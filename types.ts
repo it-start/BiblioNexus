@@ -1,3 +1,4 @@
+
 export enum AppLanguage {
   ENGLISH = 'English',
   RUSSIAN = 'Russian'
@@ -78,6 +79,18 @@ export interface AlgorithmicAnalysis {
   logic_flow: LogicStep[];
 }
 
+// --- Multi-Agent Peer Review Types ---
+
+export interface PeerReview {
+  reviewer_name: string; // e.g., "Mistral Large"
+  agreement_score: number; // 0-100
+  truth_fidelity_analysis: string; // General critique
+  consensus_points: string[]; // Points where both AIs agree strongly
+  divergent_points: string[]; // Points where Mistral disagrees or offers nuance
+  missed_citations: Citation[]; // Citations Mistral thinks Gemini missed
+  cross_examination: string; // A synthesis of the comparison
+}
+
 export interface AnalysisData {
   summary: string;
   theological_insight: string;
@@ -89,7 +102,8 @@ export interface AnalysisData {
   timeline: TimelineEvent[];
   locations: BiblicalLocation[];
   key_figures: KeyFigure[];
-  algorithmic_analysis: AlgorithmicAnalysis; // New field
+  algorithmic_analysis: AlgorithmicAnalysis;
+  peer_review?: PeerReview; // New field for Multi-Agent support
 }
 
 export interface ChatMessage {

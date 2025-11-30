@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { AnalysisData, Relationship, AppLanguage } from '../types';
 import { ThemeChart } from './Visualizations/ThemeChart';
@@ -8,6 +9,8 @@ import { BiblicalMap } from './Visualizations/BiblicalMap';
 import { ScriptureDNA } from './Visualizations/ScriptureDNA';
 import { BiblicalAlgorithm } from './Visualizations/BiblicalAlgorithm';
 import { PropheticArcs } from './Visualizations/PropheticArcs';
+import { PatternCluster } from './Visualizations/PatternCluster';
+import { PeerReviewPanel } from './PeerReviewPanel';
 import { BookOpen, Share2, Activity, Info, Anchor, FileText, Network, History } from 'lucide-react';
 
 interface AnalysisDashboardProps {
@@ -72,6 +75,13 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         </div>
       </div>
 
+      {/* Peer Review Panel (Truth Finding) - NEW */}
+      {data.peer_review && (
+        <div className="my-8">
+          <PeerReviewPanel review={data.peer_review} language={language} />
+        </div>
+      )}
+
       {/* Historical Timeline */}
       {data.timeline && data.timeline.length > 0 && (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
@@ -110,7 +120,16 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         <BiblicalMap locations={data.locations} language={language} />
       )}
 
-      {/* Scripture DNA Visualization (New) */}
+      {/* Pattern Cluster Analysis (Repetitive Logic) */}
+      <div className="my-8">
+         <PatternCluster 
+           citations={data.citations} 
+           crossReferences={data.cross_references} 
+           language={language} 
+         />
+      </div>
+
+      {/* Scripture DNA Visualization */}
       {data.cross_references && data.cross_references.length > 0 && (
         <ScriptureDNA references={data.cross_references} language={language} />
       )}

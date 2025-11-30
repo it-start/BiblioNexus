@@ -158,14 +158,15 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
         .distance((d: any) => {
           // Stronger connections = closer distance
           const strength = d.strength || 5;
-          return 270 - (strength * 17);
+          // Updated distance calculation for better spacing
+          return 300 - (strength * 20); 
         })
       )
-      .force("charge", d3.forceManyBody().strength(-800)) // Stronger repulsion to prevent clutter
+      .force("charge", d3.forceManyBody().strength(-1500)) // Stronger repulsion to prevent clutter
       .force("center", d3.forceCenter(w / 2, h / 2))
-      .force("x", d3.forceX(w / 2).strength(0.08)) // Gentle pull to center X
-      .force("y", d3.forceY(h / 2).strength(0.08)) // Gentle pull to center Y
-      .force("collide", d3.forceCollide().radius(60).iterations(2));
+      .force("x", d3.forceX(w / 2).strength(0.05)) // Gentle pull to center X, relaxed to allow spread
+      .force("y", d3.forceY(h / 2).strength(0.05)) // Gentle pull to center Y, relaxed to allow spread
+      .force("collide", d3.forceCollide().radius(80).iterations(3)); // Increased collision radius for labels
 
     // Arrow markers
     const defs = svg.append("defs");
