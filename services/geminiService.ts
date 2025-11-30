@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { AppLanguage, AnalysisData, ImageSize } from "../types";
 
@@ -140,9 +141,43 @@ const analysisSchema: Schema = {
         }
       },
       required: ["variables", "logic_flow"]
+    },
+    bio_theology: {
+      type: Type.OBJECT,
+      description: "Map the topic to a DNA/RNA genetic sequence metaphor (Bible as DNA).",
+      properties: {
+        sequence_data: {
+          type: Type.ARRAY,
+          description: "A sequence of 8-12 bases mapped from the text.",
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              nucleotide: { type: Type.STRING, enum: ['A', 'C', 'G', 'T', 'U'] },
+              concept: { type: Type.STRING, description: "The concept this base represents (e.g. Authority, Grace)" },
+              snippet: { type: Type.STRING, description: "The specific word/phrase from scripture" }
+            },
+            required: ["nucleotide", "concept", "snippet"]
+          }
+        },
+        codons: {
+          type: Type.ARRAY,
+          description: "Groupings of 3 bases that produce a 'spiritual amino acid'.",
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              sequence: { type: Type.STRING, description: "e.g. ACG" },
+              amino_acid: { type: Type.STRING, description: "The resulting spiritual product (e.g. 'Redemption')" },
+              description: { type: Type.STRING, description: "How these 3 concepts combine" }
+            },
+            required: ["sequence", "amino_acid", "description"]
+          }
+        },
+        summary: { type: Type.STRING, description: "Overview of this genetic/theological structure." }
+      },
+      required: ["sequence_data", "codons", "summary"]
     }
   },
-  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context", "timeline", "locations", "key_figures", "algorithmic_analysis"]
+  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context", "timeline", "locations", "key_figures", "algorithmic_analysis", "bio_theology"]
 };
 
 export const analyzeBibleTopic = async (topic: string, language: AppLanguage): Promise<AnalysisData> => {
@@ -169,10 +204,14 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
     8. For "locations", identify up to 5 key geographical places associated with this topic. Provide accurate coordinates (approximate for ancient sites if necessary) and list associated figures and themes for map overlaying.
     9. For "key_figures", provide a brief list of the main entities mentioned in the relationships section, with their role and a short description.
     10. For "algorithmic_analysis", abstract the theological logic of the topic into pseudocode variables and flow control.
-        - Define "Constants" (e.g., God's Attributes, Covenants).
-        - Define "Mutable Variables" (e.g., Human Heart, National Status).
-        - Define the "Logic Flow" (e.g., Cycles of Judges: Sin -> Servitude -> Supplication -> Salvation).
-        - Use programming concepts like loops (while), conditions (if/else), and assignments (=).
+    11. For "bio_theology", perform a "Genetic Analysis" of the text. Map the theological DNA:
+        - Use these Bases:
+          * A (Adenine) = Authority / Law / Father / Sovereignty
+          * C (Cytosine) = Compassion / Grace / Son / Mercy
+          * G (Guanine) = Glory / Spirit / Life / Power
+          * T (Thymine) = Truth / Word / Testimony / Logos
+        - Extract a sequence of 8-12 bases from the topic's core scriptures.
+        - Group them into "Codons" (triplets) and define what "Spiritual Amino Acid" (Result) they produce (e.g., A+T+C might produce "Justification").
   `;
 
   try {

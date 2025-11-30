@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { AnalysisData, Relationship, AppLanguage } from '../types';
 import { ThemeChart } from './Visualizations/ThemeChart';
@@ -10,6 +11,7 @@ import { ScriptureDNA } from './Visualizations/ScriptureDNA';
 import { BiblicalAlgorithm } from './Visualizations/BiblicalAlgorithm';
 import { PropheticArcs } from './Visualizations/PropheticArcs';
 import { PatternCluster } from './Visualizations/PatternCluster';
+import { BioGeneticAnalysis } from './Visualizations/BioGeneticAnalysis';
 import { PeerReviewPanel } from './PeerReviewPanel';
 import { BookOpen, Share2, Activity, Info, Anchor, FileText, Network, History } from 'lucide-react';
 
@@ -105,6 +107,13 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
       {data.cross_references && data.cross_references.length > 0 && (
         <div className="my-8">
           <PropheticArcs data={data.cross_references} language={language} />
+        </div>
+      )}
+
+      {/* Bio-Genetic Sequencer (Bible as DNA) */}
+      {data.bio_theology && (
+        <div className="my-8">
+           <BioGeneticAnalysis data={data.bio_theology} language={language} />
         </div>
       )}
 

@@ -79,6 +79,26 @@ export interface AlgorithmicAnalysis {
   logic_flow: LogicStep[];
 }
 
+// --- Bio-Theology Types (DNA/RNA) ---
+
+export interface BioBase {
+  nucleotide: 'A' | 'C' | 'G' | 'T' | 'U'; // A=Authority/Law, C=Compassion/Grace, G=Glory/Spirit, T=Truth/Word, U=Urgency/Action (RNA)
+  concept: string; // e.g., "Command", "Mercy"
+  snippet: string; // The specific word/phrase mapped
+}
+
+export interface BioCodon {
+  sequence: string; // e.g. "ACG"
+  amino_acid: string; // The spiritual "protein" e.g., "Redemption"
+  description: string;
+}
+
+export interface BioTheology {
+  sequence_data: BioBase[];
+  codons: BioCodon[];
+  summary: string; // Explanation of the "genetic" makeup of this passage
+}
+
 // --- Multi-Agent Peer Review Types ---
 
 export interface PeerReview {
@@ -103,7 +123,8 @@ export interface AnalysisData {
   locations: BiblicalLocation[];
   key_figures: KeyFigure[];
   algorithmic_analysis: AlgorithmicAnalysis;
-  peer_review?: PeerReview; // New field for Multi-Agent support
+  bio_theology?: BioTheology; // New field for DNA Analysis
+  peer_review?: PeerReview; 
 }
 
 export interface ChatMessage {
