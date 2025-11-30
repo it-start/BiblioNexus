@@ -7,7 +7,8 @@ import { TimelineChart } from './Visualizations/TimelineChart';
 import { BiblicalMap } from './Visualizations/BiblicalMap';
 import { ScriptureDNA } from './Visualizations/ScriptureDNA';
 import { BiblicalAlgorithm } from './Visualizations/BiblicalAlgorithm';
-import { BookOpen, Share2, Activity, Info, Anchor, GitMerge, FileText, Network, History, Cpu } from 'lucide-react';
+import { PropheticArcs } from './Visualizations/PropheticArcs';
+import { BookOpen, Share2, Activity, Info, Anchor, FileText, Network, History } from 'lucide-react';
 
 interface AnalysisDashboardProps {
   data: AnalysisData;
@@ -89,6 +90,13 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
           {data.theological_insight}
         </p>
       </div>
+
+      {/* Prophetic Arcs (Divine Trajectory) */}
+      {data.cross_references && data.cross_references.length > 0 && (
+        <div className="my-8">
+          <PropheticArcs data={data.cross_references} language={language} />
+        </div>
+      )}
 
       {/* Algorithmic Analysis (Bible as Code) */}
       {data.algorithmic_analysis && (
