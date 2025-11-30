@@ -132,10 +132,21 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
 
     // Simulation
     const simulation = d3.forceSimulation(nodes as any)
-      .force("link", d3.forceLink(links).id((d: any) => d.id).distance(120))
-      .force("charge", d3.forceManyBody().strength(-300))
+      .force("link", d3.forceLink(links)
+        .id((d: any) => d.id)
+        .distance((d: any) => {
+          // Stronger connections = closer distance
+          // Strength 1 (Weak) -> Distance ~250
+          // Strength 10 (Strong) -> Distance ~100
+          const strength = d.strength || 5;
+          return 270 - (strength * 17);
+        })
+      )
+      .force("charge", d3.forceManyBody().strength(-800)) // Stronger repulsion to prevent clutter
       .force("center", d3.forceCenter(w / 2, h / 2))
-      .force("collide", d3.forceCollide().radius(35));
+      .force("x", d3.forceX(w / 2).strength(0.08)) // Gentle pull to center X
+      .force("y", d3.forceY(h / 2).strength(0.08)) // Gentle pull to center Y
+      .force("collide", d3.forceCollide().radius(60).iterations(2));
 
     // Arrow markers
     const defs = svg.append("defs");
@@ -209,7 +220,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
 
     // Node circles
     node.append("circle")
-      .attr("r", 12)
+      .attr("r", 14) // Slightly larger radius
       .attr("fill", "white")
       .attr("stroke", (d: any) => selectedNodeId === d.id ? "#f59e0b" : "#4f46e5") // Amber if selected, Indigo if not
       .attr("stroke-width", (d: any) => selectedNodeId === d.id ? 4 : 2)
@@ -221,7 +232,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
       .text(d => d.id)
       .attr("font-size", 10)
       .attr("font-weight", "600")
-      .attr("dy", 24)
+      .attr("dy", 26)
       .attr("text-anchor", "middle")
       .attr("fill", "#1e293b")
       .style("pointer-events", "none")
@@ -233,7 +244,14 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
         return `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`;
       });
 
-      node.attr("transform", (d: any) => `translate(${d.x},${d.y})`);
+      node.attr("transform", (d: any) => {
+        // Constrain nodes within the SVG bounds with padding
+        const radius = 20; 
+        const padding = 20;
+        d.x = Math.max(radius + padding, Math.min(w - radius - padding, d.x));
+        d.y = Math.max(radius + padding, Math.min(h - radius - padding, d.y));
+        return `translate(${d.x},${d.y})`;
+      });
     });
 
     function drag(simulation: d3.Simulation<any, undefined>) {
