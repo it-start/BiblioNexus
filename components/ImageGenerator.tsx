@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Image, Loader2, Download, Maximize2, Quote } from 'lucide-react';
 import { generateBiblicalImage } from '../services/geminiService';
-import { ImageSize, Citation } from '../types';
+import { ImageSize, Citation, AppLanguage } from '../types';
 
 interface ImageGeneratorProps {
   citations?: Citation[];
+  language?: AppLanguage;
 }
 
-export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ citations = [] }) => {
+export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ citations = [], language = AppLanguage.ENGLISH }) => {
   const [prompt, setPrompt] = useState('');
   const [size, setSize] = useState<ImageSize>('1K');
   const [reference, setReference] = useState('');
@@ -15,6 +16,24 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ citations = [] }
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const t = {
+    title: language === AppLanguage.RUSSIAN ? "Визуализатор библейских сцен" : "Biblical Scene Visualizer",
+    descLabel: language === AppLanguage.RUSSIAN ? "Описание сцены" : "Scene Description",
+    descPlaceholder: language === AppLanguage.RUSSIAN ? "напр., Моисей разделяет море, Давид играет на арфе..." : "e.g., Moses parting the Red Sea, David playing the harp...",
+    refLabel: language === AppLanguage.RUSSIAN ? "Ссылка на Писание" : "Scripture Reference",
+    optional: language === AppLanguage.RUSSIAN ? "Необязательно" : "Optional",
+    refPlaceholder: language === AppLanguage.RUSSIAN ? "напр., Бытие 1:1" : "e.g. Genesis 1:1",
+    quickSelect: language === AppLanguage.RUSSIAN ? "▼ Быстрый выбор из цитат анализа" : "▼ Quick Select from Analysis Citations",
+    resolution: language === AppLanguage.RUSSIAN ? "Разрешение" : "Resolution",
+    generate: language === AppLanguage.RUSSIAN ? "Сгенерировать" : "Generate Visualization",
+    visualizing: language === AppLanguage.RUSSIAN ? "Визуализация..." : "Visualizing...",
+    error: language === AppLanguage.RUSSIAN ? "Не удалось создать изображение. Попробуйте другой запрос." : "Failed to generate image. Please try a different prompt or check permissions.",
+    standard: language === AppLanguage.RUSSIAN ? "Стандарт (1K)" : "1K (Standard)",
+    high: language === AppLanguage.RUSSIAN ? "Высокое (2K)" : "2K (High)",
+    ultra: language === AppLanguage.RUSSIAN ? "Ультра (4K)" : "4K (Ultra)",
+    generatedBy: language === AppLanguage.RUSSIAN ? "BiblioNexus ИИ" : "BiblioNexus AI"
+  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -28,7 +47,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ citations = [] }
       setImageUrl(url);
       setGeneratedReference(reference);
     } catch (err) {
-      setError("Failed to generate image. Please try a different prompt or check permissions.");
+      setError(t.error);
     } finally {
       setLoading(false);
     }
@@ -42,17 +61,17 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ citations = [] }
     <div className="bg-white p-6 rounded-xl shadow-md border border-stone-200 mt-8">
       <div className="flex items-center gap-2 mb-6 text-indigo-900 border-b border-stone-100 pb-2">
         <Image className="w-6 h-6" />
-        <h2 className="text-xl font-serif font-bold">Biblical Scene Visualizer</h2>
+        <h2 className="text-xl font-serif font-bold">{t.title}</h2>
       </div>
 
       <div className="space-y-4 mb-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Scene Description</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t.descLabel}</label>
           <input
             type="text"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="e.g., Moses parting the Red Sea, David playing the harp..."
+            placeholder={t.descPlaceholder}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           />
         </div>
@@ -60,7 +79,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ citations = [] }
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
              <label className="block text-sm font-medium text-gray-700 mb-1">
-               Scripture Reference <span className="text-gray-400 font-normal">(Optional)</span>
+               {t.refLabel} <span className="text-gray-400 font-normal">({t.optional})</span>
              </label>
              <div className="flex flex-col gap-2">
                <div className="relative">
@@ -69,7 +88,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ citations = [] }
                   type="text"
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
-                  placeholder="e.g. Genesis 1:1"
+                  placeholder={t.refPlaceholder}
                   className="w-full pl-9 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
                </div>
@@ -80,7 +99,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ citations = [] }
                    value=""
                    className="w-full text-xs p-2 bg-stone-50 border border-stone-200 rounded text-stone-600 focus:outline-none hover:bg-stone-100 transition-colors"
                  >
-                   <option value="" disabled>▼ Quick Select from Analysis Citations</option>
+                   <option value="" disabled>{t.quickSelect}</option>
                    {citations.map((c, idx) => (
                      <option key={idx} value={`${c.book} ${c.chapter}:${c.verse_start}${c.verse_end ? '-' + c.verse_end : ''}`}>
                        {c.book} {c.chapter}:{c.verse_start} — {c.text.substring(0, 40)}...
@@ -92,15 +111,15 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ citations = [] }
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Resolution</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t.resolution}</label>
             <select 
               value={size}
               onChange={(e) => setSize(e.target.value as ImageSize)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
             >
-              <option value="1K">1K (Standard)</option>
-              <option value="2K">2K (High)</option>
-              <option value="4K">4K (Ultra)</option>
+              <option value="1K">{t.standard}</option>
+              <option value="2K">{t.high}</option>
+              <option value="4K">{t.ultra}</option>
             </select>
           </div>
         </div>
@@ -112,7 +131,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ citations = [] }
         className="w-full bg-indigo-700 hover:bg-indigo-800 disabled:bg-indigo-300 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
       >
         {loading ? <Loader2 className="animate-spin" /> : <Maximize2 size={18} />}
-        {loading ? 'Visualizing...' : 'Generate Visualization'}
+        {loading ? t.visualizing : t.generate}
       </button>
 
       {error && (
@@ -148,7 +167,7 @@ export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ citations = [] }
             
             <div className="mt-4 pt-3 border-t border-stone-100 flex justify-between items-center text-xs text-gray-400">
                <span>Gemini 3 Pro • {size}</span>
-               <span>BiblioNexus AI</span>
+               <span>{t.generatedBy}</span>
             </div>
           </div>
         </div>

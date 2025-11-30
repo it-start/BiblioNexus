@@ -39,6 +39,16 @@ export interface TimelineEvent {
   description: string;
 }
 
+export interface BiblicalLocation {
+  name: string;
+  latitude: number;
+  longitude: number;
+  description: string;
+  significance: string;
+  associated_figures: string[];
+  associated_themes: string[];
+}
+
 export interface AnalysisData {
   summary: string;
   theological_insight: string;
@@ -48,6 +58,7 @@ export interface AnalysisData {
   cross_references: CrossReference[];
   historical_context: string;
   timeline: TimelineEvent[];
+  locations: BiblicalLocation[];
 }
 
 export interface ChatMessage {

@@ -1,9 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, X, MessageSquare, Loader2 } from 'lucide-react';
 import { createChatSession } from '../services/geminiService';
-import { ChatMessage } from '../types';
+import { ChatMessage, AppLanguage } from '../types';
 
-export const ChatBot: React.FC = () => {
+interface ChatBotProps {
+  language?: AppLanguage;
+}
+
+export const ChatBot: React.FC<ChatBotProps> = ({ language = AppLanguage.ENGLISH }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -11,18 +15,29 @@ export const ChatBot: React.FC = () => {
   const chatSessionRef = useRef<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const t = {
+    title: language === AppLanguage.RUSSIAN ? "Библейский ассистент" : "Biblical Assistant",
+    greeting: language === AppLanguage.RUSSIAN 
+      ? "Приветствую. Я ваш помощник в изучении Библии. Спрашивайте меня о чем угодно из Писания, истории или богословия."
+      : "Greetings. I am your Bible study companion. Ask me anything about scripture, history, or theology.",
+    placeholder: language === AppLanguage.RUSSIAN ? "Задайте вопрос..." : "Ask a question...",
+    error: language === AppLanguage.RUSSIAN 
+      ? "Прошу прощения, возникли проблемы с подключением. Пожалуйста, попробуйте еще раз." 
+      : "I apologize, but I'm having trouble connecting to the archives right now. Please try again."
+  };
+
   useEffect(() => {
     if (isOpen && !chatSessionRef.current) {
-      chatSessionRef.current = createChatSession();
+      chatSessionRef.current = createChatSession(language);
       // Initial greeting
       setMessages([{
         id: 'init',
         role: 'model',
-        text: 'Greetings. I am your Bible study companion. Ask me anything about scripture, history, or theology.',
+        text: t.greeting,
         timestamp: new Date()
       }]);
     }
-  }, [isOpen]);
+  }, [isOpen, language]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -57,7 +72,7 @@ export const ChatBot: React.FC = () => {
       const errorMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'model',
-        text: "I apologize, but I'm having trouble connecting to the archives right now. Please try again.",
+        text: t.error,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMsg]);
@@ -80,7 +95,7 @@ export const ChatBot: React.FC = () => {
   return (
     <div className="fixed bottom-6 right-6 w-96 h-[500px] bg-white rounded-xl shadow-2xl flex flex-col z-50 border border-indigo-100 overflow-hidden font-sans">
       <div className="bg-indigo-800 text-white p-4 flex justify-between items-center">
-        <h3 className="font-serif font-bold tracking-wide">Biblical Assistant</h3>
+        <h3 className="font-serif font-bold tracking-wide">{t.title}</h3>
         <button onClick={() => setIsOpen(false)} className="hover:text-indigo-200">
           <X size={20} />
         </button>
@@ -114,7 +129,7 @@ export const ChatBot: React.FC = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Ask a question..."
+            placeholder={t.placeholder}
             className="flex-1 px-4 py-2 border border-stone-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-stone-50"
           />
           <button 

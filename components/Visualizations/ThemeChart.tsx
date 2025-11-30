@@ -1,15 +1,20 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Theme } from '../../types';
+import { Theme, AppLanguage } from '../../types';
 
 interface ThemeChartProps {
   data: Theme[];
+  language?: AppLanguage;
 }
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#d0ed57', '#a4de6c', '#8dd1e1'];
 
-export const ThemeChart: React.FC<ThemeChartProps> = ({ data }) => {
-  if (!data || data.length === 0) return <div className="text-gray-500 italic">No thematic data available.</div>;
+export const ThemeChart: React.FC<ThemeChartProps> = ({ data, language = AppLanguage.ENGLISH }) => {
+  const t = {
+    noData: language === AppLanguage.RUSSIAN ? "Нет тематических данных." : "No thematic data available."
+  };
+
+  if (!data || data.length === 0) return <div className="text-gray-500 italic">{t.noData}</div>;
 
   return (
     <div className="h-64 w-full">

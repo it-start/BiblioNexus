@@ -1,17 +1,37 @@
 import React from 'react';
-import { AnalysisData, Relationship } from '../types';
+import { AnalysisData, Relationship, AppLanguage } from '../types';
 import { ThemeChart } from './Visualizations/ThemeChart';
 import { NetworkGraph } from './Visualizations/NetworkGraph';
 import { DistributionChart } from './Visualizations/DistributionChart';
 import { TimelineChart } from './Visualizations/TimelineChart';
+import { BiblicalMap } from './Visualizations/BiblicalMap';
 import { BookOpen, Share2, Activity, Info, Anchor, GitMerge, FileText, Network, History } from 'lucide-react';
 
 interface AnalysisDashboardProps {
   data: AnalysisData;
+  language?: AppLanguage;
 }
 
-export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) => {
+export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, language = AppLanguage.ENGLISH }) => {
   
+  const t = {
+    summary: language === AppLanguage.RUSSIAN ? "Богословское резюме" : "Theological Summary",
+    context: language === AppLanguage.RUSSIAN ? "Исторический контекст" : "Historical Context",
+    timeline: language === AppLanguage.RUSSIAN ? "Хронология событий" : "Timeline of Events",
+    insight: language === AppLanguage.RUSSIAN ? "Глубокое богословское понимание" : "Deep Theological Insight",
+    footprint: language === AppLanguage.RUSSIAN ? "Библейский след" : "Scriptural Footprint",
+    distDesc: language === AppLanguage.RUSSIAN ? "Распределение ссылок по книгам Библии." : "Distribution of references across biblical books.",
+    interconnections: language === AppLanguage.RUSSIAN ? "Библейские взаимосвязи" : "Scriptural Interconnections",
+    interDesc: language === AppLanguage.RUSSIAN ? "Визуализация того, как Писание толкует Писание (напр., Пророчество → Исполнение)." : "Visualizing how scripture interprets scripture (e.g., Prophecy → Fulfillment).",
+    hoverHint: language === AppLanguage.RUSSIAN ? "Наведите на линии связи, чтобы увидеть детали." : "Hover over connection lines to see connection details.",
+    resonance: language === AppLanguage.RUSSIAN ? "Тематический резонанс" : "Thematic Resonance",
+    figures: language === AppLanguage.RUSSIAN ? "Сеть ключевых фигур" : "Key Figures Network",
+    crossRefs: language === AppLanguage.RUSSIAN ? "Детали перекрестных ссылок" : "Deep Cross-Reference Details",
+    citations: language === AppLanguage.RUSSIAN ? "Проверенные библейские цитаты" : "Verified Scriptural Citations",
+    verified: language === AppLanguage.RUSSIAN ? "Проверено" : "Verified",
+    relevance: language === AppLanguage.RUSSIAN ? "Значение" : "Relevance"
+  };
+
   // Transform cross_references to Relationship format for graph visualization
   const crossReferenceRelationships: Relationship[] = data.cross_references?.map(ref => ({
     source: ref.primary_verse,
@@ -30,7 +50,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) =>
         <div className="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-stone-200">
           <div className="flex items-center gap-2 mb-4 text-indigo-800">
             <BookOpen className="w-5 h-5" />
-            <h2 className="text-xl font-serif font-bold">Theological Summary</h2>
+            <h2 className="text-xl font-serif font-bold">{t.summary}</h2>
           </div>
           <p className="text-gray-700 leading-relaxed text-lg font-light">
             {data.summary}
@@ -41,7 +61,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) =>
         <div className="bg-stone-50 p-6 rounded-xl border border-stone-200">
           <div className="flex items-center gap-2 mb-4 text-amber-700">
             <Info className="w-5 h-5" />
-            <h3 className="text-lg font-serif font-bold">Historical Context</h3>
+            <h3 className="text-lg font-serif font-bold">{t.context}</h3>
           </div>
           <p className="text-sm text-gray-600 italic leading-relaxed">
             {data.historical_context}
@@ -54,7 +74,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) =>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
           <div className="flex items-center gap-2 mb-6 text-amber-800">
             <History className="w-5 h-5" />
-            <h3 className="text-xl font-serif font-bold">Timeline of Events</h3>
+            <h3 className="text-xl font-serif font-bold">{t.timeline}</h3>
           </div>
           <TimelineChart events={data.timeline} />
         </div>
@@ -62,21 +82,26 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) =>
 
       {/* Deep Insight */}
       <div className="bg-indigo-50 p-8 rounded-xl border border-indigo-100">
-        <h3 className="text-xl font-serif font-bold text-indigo-900 mb-4">Deep Theological Insight</h3>
+        <h3 className="text-xl font-serif font-bold text-indigo-900 mb-4">{t.insight}</h3>
         <p className="text-indigo-900/80 leading-relaxed font-serif text-lg">
           {data.theological_insight}
         </p>
       </div>
+
+      {/* Geographical Map */}
+      {data.locations && data.locations.length > 0 && (
+        <BiblicalMap locations={data.locations} language={language} />
+      )}
 
       {/* Scripture Distribution */}
       <div className="grid grid-cols-1 gap-8">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
            <div className="flex items-center gap-2 mb-6 text-indigo-800">
             <FileText className="w-5 h-5" />
-            <h3 className="text-lg font-serif font-bold">Scriptural Footprint</h3>
+            <h3 className="text-lg font-serif font-bold">{t.footprint}</h3>
           </div>
-          <p className="text-sm text-gray-500 mb-4">Distribution of references across biblical books.</p>
-          <DistributionChart citations={data.citations} />
+          <p className="text-sm text-gray-500 mb-4">{t.distDesc}</p>
+          <DistributionChart citations={data.citations} language={language} />
         </div>
       </div>
 
@@ -85,11 +110,11 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) =>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
           <div className="flex items-center gap-2 mb-2 text-indigo-900">
             <Network className="w-5 h-5" />
-            <h3 className="text-lg font-serif font-bold">Scriptural Interconnections</h3>
+            <h3 className="text-lg font-serif font-bold">{t.interconnections}</h3>
           </div>
-          <p className="text-sm text-gray-500 mb-6">Visualizing how scripture interprets scripture (e.g., Prophecy → Fulfillment).</p>
-          <NetworkGraph relationships={crossReferenceRelationships} height={500} />
-          <div className="mt-2 text-xs text-center text-gray-400 italic">Hover over connection lines to see connection details.</div>
+          <p className="text-sm text-gray-500 mb-6">{t.interDesc}</p>
+          <NetworkGraph relationships={crossReferenceRelationships} height={500} language={language} />
+          <div className="mt-2 text-xs text-center text-gray-400 italic">{t.hoverHint}</div>
         </div>
       )}
 
@@ -99,18 +124,18 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) =>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
           <div className="flex items-center gap-2 mb-6 text-indigo-800">
             <Activity className="w-5 h-5" />
-            <h3 className="text-lg font-serif font-bold">Thematic Resonance</h3>
+            <h3 className="text-lg font-serif font-bold">{t.resonance}</h3>
           </div>
-          <ThemeChart data={data.themes} />
+          <ThemeChart data={data.themes} language={language} />
         </div>
 
         {/* Relationship Network (People) */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
           <div className="flex items-center gap-2 mb-6 text-indigo-800">
             <Share2 className="w-5 h-5" />
-            <h3 className="text-lg font-serif font-bold">Key Figures Network</h3>
+            <h3 className="text-lg font-serif font-bold">{t.figures}</h3>
           </div>
-          <NetworkGraph relationships={data.relationships} />
+          <NetworkGraph relationships={data.relationships} language={language} />
         </div>
       </div>
 
@@ -119,7 +144,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) =>
         <div className="bg-gradient-to-br from-slate-50 to-white p-6 rounded-xl shadow-sm border border-slate-200">
           <div className="flex items-center gap-2 mb-6 text-indigo-900">
             <GitMerge className="w-5 h-5" />
-            <h3 className="text-xl font-serif font-bold">Deep Cross-Reference Details</h3>
+            <h3 className="text-xl font-serif font-bold">{t.crossRefs}</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {data.cross_references.map((ref, idx) => (
@@ -147,7 +172,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) =>
       <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
         <div className="bg-stone-100 p-4 border-b border-stone-200 flex items-center gap-2">
           <Anchor className="w-5 h-5 text-stone-600" />
-          <h3 className="text-lg font-serif font-bold text-stone-700">Verified Scriptural Citations</h3>
+          <h3 className="text-lg font-serif font-bold text-stone-700">{t.citations}</h3>
         </div>
         <div className="divide-y divide-stone-100">
           {data.citations.map((cite, idx) => (
@@ -156,13 +181,13 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data }) =>
                 <span className="font-bold text-indigo-700 font-serif text-lg group-hover:underline decoration-indigo-300 underline-offset-4 transition-all">
                   {cite.book} {cite.chapter}:{cite.verse_start}{cite.verse_end ? `-${cite.verse_end}` : ''}
                 </span>
-                <span className="text-xs text-gray-400 uppercase tracking-wider border border-gray-200 px-1.5 py-0.5 rounded">Verified</span>
+                <span className="text-xs text-gray-400 uppercase tracking-wider border border-gray-200 px-1.5 py-0.5 rounded">{t.verified}</span>
               </div>
               <p className="text-gray-800 font-serif italic mb-3 text-lg leading-relaxed text-stone-700 bg-stone-50/50 p-3 rounded-lg border-l-4 border-amber-400 shadow-sm">
                 "{cite.text}"
               </p>
               <p className="text-sm text-gray-500">
-                <span className="font-semibold text-gray-600">Relevance: </span>
+                <span className="font-semibold text-gray-600">{t.relevance}: </span>
                 {cite.relevance}
               </p>
             </div>

@@ -85,9 +85,26 @@ const analysisSchema: Schema = {
         },
         required: ["year", "event", "description"]
       }
+    },
+    locations: {
+      type: Type.ARRAY,
+      description: "Key geographical locations associated with the topic, including coordinates.",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING },
+          latitude: { type: Type.NUMBER, description: "Decimal latitude" },
+          longitude: { type: Type.NUMBER, description: "Decimal longitude" },
+          description: { type: Type.STRING, description: "Brief description of the location in this context" },
+          significance: { type: Type.STRING, description: "Why is this place important?" },
+          associated_figures: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Key biblical figures associated with this location" },
+          associated_themes: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Themes connected to this place" }
+        },
+        required: ["name", "latitude", "longitude", "description", "significance"]
+      }
     }
   },
-  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context", "timeline"]
+  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context", "timeline", "locations"]
 };
 
 export const analyzeBibleTopic = async (topic: string, language: AppLanguage): Promise<AnalysisData> => {
@@ -110,6 +127,7 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
        - Look for direct quotations.
        - Ensure the "connection_type" is descriptive.
     7. For "timeline", provide a chronological list of 3-7 key historical events directly related to the topic.
+    8. For "locations", identify up to 5 key geographical places associated with this topic. Provide accurate coordinates (approximate for ancient sites if necessary) and list associated figures and themes for map overlaying.
   `;
 
   try {
@@ -165,12 +183,17 @@ export const generateBiblicalImage = async (prompt: string, size: ImageSize): Pr
 };
 
 // Chat Service
-export const createChatSession = () => {
+export const createChatSession = (language: AppLanguage) => {
   const ai = new GoogleGenAI({ apiKey: getApiKey() });
+  
+  const instruction = language === AppLanguage.RUSSIAN
+    ? "Вы — полезный помощник по изучению Библии. Используйте контекст Библии для ответов на вопросы. Будьте вежливы, мудры и по возможности предоставляйте ссылки на стихи. Отвечайте на русском языке."
+    : "You are a helpful Bible study assistant. Use the context of the Bible to answer questions. Be polite, wise, and provide verse references when possible.";
+
   return ai.chats.create({
     model: 'gemini-3-pro-preview',
     config: {
-      systemInstruction: "You are a helpful Bible study assistant. Use the context of the Bible to answer questions. Be polite, wise, and provide verse references when possible.",
+      systemInstruction: instruction,
     }
   });
 };

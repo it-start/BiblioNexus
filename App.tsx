@@ -3,6 +3,7 @@ import { Search, Book, Menu, Globe } from 'lucide-react';
 import { AnalysisDashboard } from './components/AnalysisDashboard';
 import { ChatBot } from './components/ChatBot';
 import { ImageGenerator } from './components/ImageGenerator';
+import { ParallelsGuide } from './components/ParallelsGuide';
 import { analyzeBibleTopic } from './services/geminiService';
 import { AnalysisData, AppLanguage } from './types';
 
@@ -12,6 +13,18 @@ function App() {
   const [data, setData] = useState<AnalysisData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const t = {
+    titleSuffix: language === AppLanguage.RUSSIAN ? "Исследуйте" : "Explore the",
+    titleHighlight: language === AppLanguage.RUSSIAN ? "Живое Слово" : "Living Word",
+    placeholder: language === AppLanguage.RUSSIAN ? "Введите тему, личность или стих (напр. 'Царь Давид', 'Искупление')..." : "Enter a topic, person, or verse (e.g., 'King David', 'Redemption')...",
+    analyze: language === AppLanguage.RUSSIAN ? "Анализ" : "Analyze",
+    features: language === AppLanguage.RUSSIAN 
+      ? "Строгий богословский анализ • Проверенные цитаты • Визуальные карты • Генерация сцен" 
+      : "Strict theological analysis • Verified citations • Visual mapping • Scene generation",
+    errorTitle: language === AppLanguage.RUSSIAN ? "Ошибка анализа" : "Analysis Error",
+    errorMessage: language === AppLanguage.RUSSIAN ? "Не удалось проанализировать эту тему. Пожалуйста, убедитесь, что она связана с Библией, и повторите попытку." : "Unable to analyze this topic. Please ensure it is related to the Bible and try again."
+  };
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -25,7 +38,7 @@ function App() {
       setData(result);
     } catch (err) {
       console.error(err);
-      setError("Unable to analyze this topic. Please ensure it is related to the Bible and try again.");
+      setError(t.errorMessage);
     } finally {
       setLoading(false);
     }
@@ -44,18 +57,25 @@ function App() {
             <div className="bg-indigo-900 text-amber-500 p-2 rounded-lg">
               <Book size={24} />
             </div>
-            <h1 className="text-2xl font-serif font-bold text-gray-900 tracking-tight">
+            <h1 className="text-2xl font-serif font-bold text-gray-900 tracking-tight hidden sm:block">
               Biblio<span className="text-indigo-700">Nexus</span>
+            </h1>
+            <h1 className="text-2xl font-serif font-bold text-gray-900 tracking-tight sm:hidden">
+              B<span className="text-indigo-700">N</span>
             </h1>
           </div>
           
-          <button 
-            onClick={toggleLanguage}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-100 hover:bg-stone-200 transition-colors text-sm font-medium text-stone-600"
-          >
-            <Globe size={16} />
-            {language}
-          </button>
+          <div className="flex items-center gap-3">
+            <ParallelsGuide language={language} />
+            
+            <button 
+              onClick={toggleLanguage}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-100 hover:bg-stone-200 transition-colors text-sm font-medium text-stone-600"
+            >
+              <Globe size={16} />
+              {language}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -64,7 +84,7 @@ function App() {
         <div className={`transition-all duration-500 ease-in-out ${data ? 'mb-10' : 'mb-32 mt-20 text-center'}`}>
           {!data && (
             <h2 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-6 tracking-tight">
-              Explore the <span className="text-indigo-700 italic">Living Word</span>
+              {t.titleSuffix} <span className="text-indigo-700 italic">{t.titleHighlight}</span>
             </h2>
           )}
           
@@ -74,7 +94,7 @@ function App() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder={language === AppLanguage.ENGLISH ? "Enter a topic, person, or verse (e.g., 'King David', 'Redemption')..." : "Введите тему, личность или стих..."}
+              placeholder={t.placeholder}
               className="w-full pl-6 pr-32 py-4 text-lg bg-white border-2 border-stone-200 rounded-full shadow-lg focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-serif placeholder:font-sans placeholder:text-gray-400"
             />
             <button
@@ -87,7 +107,7 @@ function App() {
               ) : (
                 <>
                   <Search size={18} />
-                  <span>Analyze</span>
+                  <span>{t.analyze}</span>
                 </>
               )}
             </button>
@@ -95,7 +115,7 @@ function App() {
           
           {!data && !loading && (
              <p className="mt-4 text-gray-500 text-sm">
-               Strict theological analysis • Verified citations • Visual mapping • Scene generation
+               {t.features}
              </p>
           )}
         </div>
@@ -103,7 +123,7 @@ function App() {
         {/* Error State */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center max-w-2xl mx-auto">
-            <h3 className="text-red-800 font-bold mb-2">Analysis Error</h3>
+            <h3 className="text-red-800 font-bold mb-2">{t.errorTitle}</h3>
             <p className="text-red-600">{error}</p>
           </div>
         )}
@@ -111,13 +131,13 @@ function App() {
         {/* Results */}
         {data && (
           <div className="animate-fade-in-up">
-            <AnalysisDashboard data={data} />
-            <ImageGenerator citations={data.citations} />
+            <AnalysisDashboard data={data} language={language} />
+            <ImageGenerator citations={data.citations} language={language} />
           </div>
         )}
       </main>
 
-      <ChatBot />
+      <ChatBot language={language} />
     </div>
   );
 }

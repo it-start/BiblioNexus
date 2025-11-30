@@ -1,12 +1,17 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Citation } from '../../types';
+import { Citation, AppLanguage } from '../../types';
 
 interface DistributionChartProps {
   citations: Citation[];
+  language?: AppLanguage;
 }
 
-export const DistributionChart: React.FC<DistributionChartProps> = ({ citations }) => {
+export const DistributionChart: React.FC<DistributionChartProps> = ({ citations, language = AppLanguage.ENGLISH }) => {
+  const t = {
+    verses: language === AppLanguage.RUSSIAN ? "Цитируемых стихов" : "Verses Cited"
+  };
+
   // Aggregate citations by book
   const dataMap = citations.reduce((acc, curr) => {
     const book = curr.book.trim();
@@ -41,7 +46,7 @@ export const DistributionChart: React.FC<DistributionChartProps> = ({ citations 
             cursor={{fill: '#f3f4f6'}}
             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
           />
-          <Bar dataKey="count" name="Verses Cited" radius={[4, 4, 0, 0]} barSize={40}>
+          <Bar dataKey="count" name={t.verses} radius={[4, 4, 0, 0]} barSize={40}>
             {data.map((entry, index) => (
                <Cell key={`cell-${index}`} fill="#4338ca" fillOpacity={0.8} />
             ))}
