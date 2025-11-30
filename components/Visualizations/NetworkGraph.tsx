@@ -236,6 +236,28 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
       .on("click", (event, d: any) => {
         event.stopPropagation(); // Prevent drag from swallowing click immediately if minimal movement
         setSelectedNodeId(d.id);
+      })
+      .on("mouseover", (event, d: any) => {
+        // Highlight node circle
+        d3.select(event.currentTarget).select("circle").attr("fill", "#e0e7ff");
+
+        // Dim non-connected links
+        link.attr("stroke-opacity", (l: any) => {
+          return (l.source.id === d.id || l.target.id === d.id) ? 1 : 0.1;
+        });
+
+        // Highlight connected links
+        link.attr("stroke-width", (l: any) => {
+          return (l.source.id === d.id || l.target.id === d.id) ? 3 : Math.max(1.5, l.strength / 2);
+        });
+      })
+      .on("mouseout", (event, d: any) => {
+        // Reset node circle
+        d3.select(event.currentTarget).select("circle").attr("fill", "white");
+        
+        // Reset links
+        link.attr("stroke-opacity", 1);
+        link.attr("stroke-width", (l: any) => Math.max(1.5, l.strength / 2));
       });
 
     // Node circles
@@ -243,9 +265,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, heigh
       .attr("r", 14) // Slightly larger radius
       .attr("fill", "white")
       .attr("stroke", (d: any) => selectedNodeId === d.id ? "#f59e0b" : "#4f46e5") // Amber if selected, Indigo if not
-      .attr("stroke-width", (d: any) => selectedNodeId === d.id ? 4 : 2)
-      .on("mouseover", function() { d3.select(this).attr("fill", "#e0e7ff"); })
-      .on("mouseout", function() { d3.select(this).attr("fill", "white"); });
+      .attr("stroke-width", (d: any) => selectedNodeId === d.id ? 4 : 2);
 
     // Node labels
     node.append("text")
