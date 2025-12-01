@@ -199,9 +199,54 @@ const analysisSchema: Schema = {
         synthesis: { type: Type.STRING, description: "How these diverse roots combine to form the full biblical concept." }
       },
       required: ["target_word", "roots", "synthesis"]
+    },
+    chrono_spatial: {
+      type: Type.OBJECT,
+      description: "4D Chrono-Spatial Reconstruction: Evolution of the main geographical location over time.",
+      properties: {
+        location_name: { type: Type.STRING, description: "Name of the primary city/location (e.g. Jerusalem, Babylon)" },
+        eras: {
+          type: Type.ARRAY,
+          description: "3 distinct historical eras relevant to the location (e.g. Bronze Age, Iron Age, Roman Era).",
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              era_name: { type: Type.STRING, description: "e.g. 'Solomonic Era' or 'Second Temple Period'" },
+              year_range: { type: Type.STRING, description: "e.g. 'c. 970-930 BC'" },
+              description: { type: Type.STRING, description: "How the city looked and functioned in this specific era." },
+              city_center: {
+                type: Type.OBJECT,
+                properties: {
+                  lat: { type: Type.NUMBER },
+                  lng: { type: Type.NUMBER }
+                },
+                required: ["lat", "lng"]
+              },
+              city_radius: { type: Type.NUMBER, description: "Approximate radius of the city limits in meters during this era." },
+              features: {
+                type: Type.ARRAY,
+                description: "Key structures or landmarks visible in THIS specific era.",
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    name: { type: Type.STRING },
+                    type: { type: Type.STRING, enum: ['structure', 'natural', 'event'] },
+                    latitude: { type: Type.NUMBER },
+                    longitude: { type: Type.NUMBER },
+                    description: { type: Type.STRING }
+                  },
+                  required: ["name", "type", "latitude", "longitude", "description"]
+                }
+              }
+            },
+            required: ["era_name", "year_range", "description", "city_center", "city_radius", "features"]
+          }
+        }
+      },
+      required: ["location_name", "eras"]
     }
   },
-  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context", "timeline", "locations", "key_figures", "algorithmic_analysis", "bio_theology", "etymology"]
+  required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context", "timeline", "locations", "key_figures", "algorithmic_analysis", "bio_theology", "etymology", "chrono_spatial"]
 };
 
 // Council Session Schema
@@ -258,19 +303,14 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
     8. For "locations", identify up to 5 key geographical places associated with this topic. Provide accurate coordinates (approximate for ancient sites if necessary) and list associated figures and themes for map overlaying.
     9. For "key_figures", provide a brief list of the main entities mentioned in the relationships section, with their role and a short description.
     10. For "algorithmic_analysis", abstract the theological logic of the topic into pseudocode variables and flow control.
-    11. For "bio_theology", perform a "Genetic Analysis" of the text. Map the theological DNA:
-        - Use these Bases:
-          * A (Adenine) = Authority / Law / Father / Sovereignty
-          * C (Cytosine) = Compassion / Grace / Son / Mercy
-          * G (Guanine) = Glory / Spirit / Life / Power
-          * T (Thymine) = Truth / Word / Testimony / Logos
-        - Extract a sequence of 8-12 bases from the topic's core scriptures.
-        - Group them into "Codons" (triplets) and define what "Spiritual Amino Acid" (Result) they produce.
-    12. For "etymology" (Spectrometry), perform a "Source Code" analysis.
-        - Identify the primary English/Russian concept.
-        - Break it down into its underlying Hebrew (OT) and Greek (NT) root words ("Isotopes").
-        - For example, if the topic is "Love", analyze *Ahavah*, *Hesed* (Hebrew) and *Agape*, *Phileo* (Greek).
-        - Explain the nuance of each root and how often it appears.
+    11. For "bio_theology", perform a "Genetic Analysis" of the text. Map the theological DNA.
+    12. For "etymology" (Spectrometry), perform a "Source Code" analysis of key Hebrew/Greek words.
+    13. For "chrono_spatial" (Time Travel Map): 
+        - If the topic involves a specific city or location (e.g. Jerusalem, Babylon, Rome, Temple), perform a 4D reconstruction.
+        - Define 3 distinct Historical Eras (e.g. Davidic, Solomonic, Roman).
+        - For EACH era, provide the specific latitude/longitude center of the city/area and its approximate radius (in meters) representing the city walls/boundaries at that time.
+        - List 3-5 key structures (buildings, gates, pools) visible in that specific era with their coordinates.
+        - If the topic is abstract (e.g. "Love"), skip this or focus on a relevant location like "Golgotha" or "Temple Mount".
   `;
 
   try {

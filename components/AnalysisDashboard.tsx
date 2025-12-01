@@ -12,6 +12,7 @@ import { PropheticArcs } from './Visualizations/PropheticArcs';
 import { PatternCluster } from './Visualizations/PatternCluster';
 import { BioGeneticAnalysis } from './Visualizations/BioGeneticAnalysis';
 import { EtymologicalPrism } from './Visualizations/EtymologicalPrism';
+import { ChronoMap } from './Visualizations/ChronoMap';
 import { PeerReviewPanel } from './PeerReviewPanel';
 import { TheCouncil } from './TheCouncil';
 import { conveneCouncil } from '../services/geminiService';
@@ -133,11 +134,18 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         </p>
       </div>
 
-      {/* Etymological Spectrometry (Source Code Analysis) - NEW */}
+      {/* Etymological Spectrometry (Source Code Analysis) */}
       {data.etymology && (
         <div className="my-8">
           <EtymologicalPrism data={data.etymology} language={language} />
         </div>
+      )}
+
+      {/* Chrono-Spatial 4D Reconstruction (Time Travel Map) - NEW */}
+      {data.chrono_spatial && data.chrono_spatial.eras && data.chrono_spatial.eras.length > 0 && (
+         <div className="my-8">
+           <ChronoMap data={data.chrono_spatial} language={language} />
+         </div>
       )}
 
       {/* Historical Timeline */}
@@ -172,7 +180,8 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         </div>
       )}
 
-      {/* Geographical Map */}
+      {/* Geographical Map (Standard) */}
+      {/* Only show if we don't have the 4D map, or show below it for broader context */}
       {data.locations && data.locations.length > 0 && (
         <BiblicalMap locations={data.locations} language={language} />
       )}

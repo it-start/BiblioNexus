@@ -116,6 +116,30 @@ export interface EtymologyAnalysis {
   synthesis: string; // How these diverse roots combine to form the full biblical meaning
 }
 
+// --- Chrono-Spatial 4D Types ---
+
+export interface MapFeature {
+  name: string;
+  type: 'structure' | 'natural' | 'event';
+  latitude: number;
+  longitude: number;
+  description: string;
+}
+
+export interface HistoricalEra {
+  era_name: string; // e.g. "Bronze Age (Melchizedek)"
+  year_range: string; // e.g. "c. 2000-1500 BC"
+  description: string; // Context of the city/location in this era
+  city_center: { lat: number; lng: number }; 
+  city_radius: number; // in meters, for drawing the approximate bounds/walls
+  features: MapFeature[]; // Key structures visible in this era
+}
+
+export interface ChronoSpatialAnalysis {
+  location_name: string; // The main location being analyzed (e.g. Jerusalem)
+  eras: HistoricalEra[];
+}
+
 // --- The Council of Three (Sanhedrin Protocol) ---
 
 export type CouncilRole = 'Archaeologist' | 'Theologian' | 'Mystic';
@@ -163,6 +187,7 @@ export interface AnalysisData {
   algorithmic_analysis: AlgorithmicAnalysis;
   bio_theology?: BioTheology; // New field for DNA Analysis
   etymology?: EtymologyAnalysis; // New field for Source Code Analysis
+  chrono_spatial?: ChronoSpatialAnalysis; // New field for 4D Maps
   peer_review?: PeerReview; 
   council_session?: CouncilSession; // New field for The Council
 }
