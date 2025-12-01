@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { AnalysisData, Relationship, AppLanguage } from '../types';
+import React, { useState } from 'react';
+import { AnalysisData, Relationship, AppLanguage, CouncilSession } from '../types';
 import { ThemeChart } from './Visualizations/ThemeChart';
 import { NetworkGraph } from './Visualizations/NetworkGraph';
 import { DistributionChart } from './Visualizations/DistributionChart';
@@ -13,7 +13,9 @@ import { PatternCluster } from './Visualizations/PatternCluster';
 import { BioGeneticAnalysis } from './Visualizations/BioGeneticAnalysis';
 import { EtymologicalPrism } from './Visualizations/EtymologicalPrism';
 import { PeerReviewPanel } from './PeerReviewPanel';
-import { BookOpen, Share2, Activity, Info, Anchor, FileText, Network, History } from 'lucide-react';
+import { TheCouncil } from './TheCouncil';
+import { conveneCouncil } from '../services/geminiService';
+import { BookOpen, Share2, Activity, Info, Anchor, FileText, Network, History, Gavel, Loader2 } from 'lucide-react';
 
 interface AnalysisDashboardProps {
   data: AnalysisData;
@@ -21,6 +23,8 @@ interface AnalysisDashboardProps {
 }
 
 export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, language = AppLanguage.ENGLISH }) => {
+  const [councilSession, setCouncilSession] = useState<CouncilSession | null>(null);
+  const [loadingCouncil, setLoadingCouncil] = useState(false);
   
   const t = {
     summary: language === AppLanguage.RUSSIAN ? "Богословское резюме" : "Theological Summary",
@@ -37,7 +41,25 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
     crossRefs: language === AppLanguage.RUSSIAN ? "Детали перекрестных ссылок" : "Deep Cross-Reference Details",
     citations: language === AppLanguage.RUSSIAN ? "Проверенные библейские цитаты" : "Verified Scriptural Citations",
     verified: language === AppLanguage.RUSSIAN ? "Проверено" : "Verified",
-    relevance: language === AppLanguage.RUSSIAN ? "Значение" : "Relevance"
+    relevance: language === AppLanguage.RUSSIAN ? "Значение" : "Relevance",
+    convene: language === AppLanguage.RUSSIAN ? "Созвать Совет Трех" : "Convene The Council of Three",
+    convening: language === AppLanguage.RUSSIAN ? "Совет собирается..." : "Convening Council...",
+    councilDesc: language === AppLanguage.RUSSIAN ? "Запустите дебаты в реальном времени между Археологом, Богословом и Мистиком для получения синтезированной мудрости." : "Initiate a real-time debate between the Archaeologist, Theologian, and Mystic for synthesized wisdom."
+  };
+
+  const handleConveneCouncil = async () => {
+    // Determine the topic from summary or use a generic fallback if prompt not strictly available here
+    // In a real app we might pass the query prop down, but here we can infer or use the first theme name
+    const topic = data.themes[0]?.name || "Theological Analysis"; 
+    setLoadingCouncil(true);
+    try {
+      const session = await conveneCouncil(topic, language);
+      setCouncilSession(session);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingCouncil(false);
+    }
   };
 
   // Transform cross_references to Relationship format for graph visualization
@@ -76,6 +98,25 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
           </p>
         </div>
       </div>
+
+      {/* Council of Three Integration */}
+      {!councilSession ? (
+        <div className="bg-gradient-to-r from-stone-900 to-stone-800 rounded-xl p-8 text-center shadow-xl border border-stone-700">
+           <Gavel size={48} className="mx-auto text-amber-500 mb-4 opacity-80" />
+           <h3 className="text-2xl font-serif font-bold text-white mb-2">{t.convene}</h3>
+           <p className="text-stone-400 mb-6 max-w-lg mx-auto">{t.councilDesc}</p>
+           <button 
+             onClick={handleConveneCouncil}
+             disabled={loadingCouncil}
+             className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-3 rounded-full font-bold tracking-wide transition-all transform hover:scale-105 disabled:opacity-50 disabled:transform-none flex items-center gap-2 mx-auto"
+           >
+             {loadingCouncil ? <Loader2 className="animate-spin" /> : <Gavel size={18} />}
+             {loadingCouncil ? t.convening : t.convene}
+           </button>
+        </div>
+      ) : (
+        <TheCouncil session={councilSession} language={language} />
+      )}
 
       {/* Peer Review Panel (Truth Finding) */}
       {data.peer_review && (

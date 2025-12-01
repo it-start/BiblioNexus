@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { AppLanguage, AnalysisData, ImageSize } from "../types";
+import { AppLanguage, AnalysisData, ImageSize, CouncilSession } from "../types";
 
 // Analysis Schema
 const analysisSchema: Schema = {
@@ -204,6 +204,36 @@ const analysisSchema: Schema = {
   required: ["summary", "theological_insight", "citations", "themes", "relationships", "cross_references", "historical_context", "timeline", "locations", "key_figures", "algorithmic_analysis", "bio_theology", "etymology"]
 };
 
+// Council Session Schema
+const councilSchema: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    topic: { type: Type.STRING },
+    debate_transcript: {
+      type: Type.ARRAY,
+      description: "The turn-by-turn debate script between the council members.",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          speaker: { type: Type.STRING, enum: ['Archaeologist', 'Theologian', 'Mystic'] },
+          content: { type: Type.STRING, description: "The argument or statement made by the speaker." },
+          tone: { type: Type.STRING, enum: ['analytical', 'skeptical', 'reverent', 'passionate', 'firm'] }
+        },
+        required: ["speaker", "content", "tone"]
+      }
+    },
+    verdict: {
+      type: Type.OBJECT,
+      properties: {
+        agreement_statement: { type: Type.STRING, description: "The final synthesis statement agreed upon by the council." },
+        pending_questions: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Questions or mysteries that remain unresolved." }
+      },
+      required: ["agreement_statement", "pending_questions"]
+    }
+  },
+  required: ["topic", "debate_transcript", "verdict"]
+};
+
 export const analyzeBibleTopic = async (topic: string, language: AppLanguage): Promise<AnalysisData> => {
   // Fix: Use process.env.API_KEY directly as per guidelines
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -260,6 +290,57 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
     return JSON.parse(text) as AnalysisData;
   } catch (error) {
     console.error("Analysis failed", error);
+    throw error;
+  }
+};
+
+export const conveneCouncil = async (topic: string, language: AppLanguage): Promise<CouncilSession> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+  const prompt = `
+    Convene the 'Council of Three' to debate the theological topic: "${topic}".
+    Target Language: ${language}
+
+    You must simulate a high-level, academic, and spiritual debate between these three personas:
+
+    1. The Archaeologist (Dr. Stone):
+       - Focus: Physical evidence, geography, carbon dating, ancient Near Eastern customs.
+       - Motto: "If I can't dig it up, I'm skeptical."
+       - Tone: Analytical, grounded, fact-obsessed.
+
+    2. The Systematician (The Logician):
+       - Focus: Doctrinal consistency, cross-references, logic, preventing heresy.
+       - Motto: "Scripture cannot contradict Scripture."
+       - Tone: Strict, precise, authoritative, logical.
+
+    3. The Mystic (The Poet):
+       - Focus: Typology, shadows, emotional resonance, the "Spirit" of the text.
+       - Motto: "The letter kills, but the Spirit gives life."
+       - Tone: Ethereal, passionate, metaphorical, deep.
+
+    Process:
+    - Generate a transcript of 5-7 turns where they discuss/argue about the topic.
+    - They should critique each other's viewpoints (e.g., Archaeologist questioning the Mystic's lack of proof, Mystic debating the Logician's rigidity).
+    - Finally, they must arrive at a 'Consensus Statement' (Verdict) that synthesizes their views into a higher truth.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-pro-preview',
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: councilSchema,
+        systemInstruction: "You are the Recording Scribe for the High Council of Biblical Studies. Transcribe the debate faithfully.",
+      }
+    });
+
+    const text = response.text;
+    if (!text) throw new Error("No response from AI for Council");
+
+    return JSON.parse(text) as CouncilSession;
+  } catch (error) {
+    console.error("Council Session failed", error);
     throw error;
   }
 };

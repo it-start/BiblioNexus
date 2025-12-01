@@ -113,7 +113,28 @@ export interface EtymologyRoot {
 export interface EtymologyAnalysis {
   target_word: string; // The concept being analyzed (e.g. "Love")
   roots: EtymologyRoot[];
-  synthesis: string; // How these roots combine to form the full biblical meaning
+  synthesis: string; // How these diverse roots combine to form the full biblical meaning
+}
+
+// --- The Council of Three (Sanhedrin Protocol) ---
+
+export type CouncilRole = 'Archaeologist' | 'Theologian' | 'Mystic';
+
+export interface DebateTurn {
+  speaker: CouncilRole;
+  content: string; // The argument/statement
+  tone: 'analytical' | 'skeptical' | 'reverent' | 'passionate' | 'firm';
+}
+
+export interface CouncilConsensus {
+  agreement_statement: string; // The synthesis agreed upon by all
+  pending_questions: string[]; // Mysteries left unresolved
+}
+
+export interface CouncilSession {
+  topic: string;
+  debate_transcript: DebateTurn[];
+  verdict: CouncilConsensus;
 }
 
 // --- Multi-Agent Peer Review Types ---
@@ -143,6 +164,7 @@ export interface AnalysisData {
   bio_theology?: BioTheology; // New field for DNA Analysis
   etymology?: EtymologyAnalysis; // New field for Source Code Analysis
   peer_review?: PeerReview; 
+  council_session?: CouncilSession; // New field for The Council
 }
 
 export interface ChatMessage {

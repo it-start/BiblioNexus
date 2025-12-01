@@ -123,14 +123,13 @@ export const EtymologicalPrism: React.FC<EtymologicalPrismProps> = ({ data, lang
                   onMouseEnter={() => setHoveredRoot(i)}
                   onMouseLeave={() => setHoveredRoot(null)}
                 >
-                  {/* Hover Glow */}
+                  {/* Hover Glow - Blinking Effect */}
                   <circle 
                     cx={x} 
                     cy={y} 
-                    r={isHovered ? 45 : 35} 
+                    r={isHovered ? 50 : 35} 
                     fill={nodeColor} 
-                    opacity={isHovered ? 0.2 : 0} 
-                    className="transition-all duration-300"
+                    className={`transition-all duration-500 ease-in-out ${isHovered ? 'opacity-40 animate-pulse' : 'opacity-0'}`}
                   />
                   
                   {/* Node Body */}
@@ -141,6 +140,7 @@ export const EtymologicalPrism: React.FC<EtymologicalPrismProps> = ({ data, lang
                     fill="#0f172a" 
                     stroke={nodeColor} 
                     strokeWidth={isHovered ? 3 : 2} 
+                    className="transition-all duration-300"
                   />
                   
                   {/* Original Word */}
