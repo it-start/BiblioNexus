@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { CouncilSession, DebateTurn, AppLanguage, CouncilRole } from '../types';
 import { Scroll, Shovel, Scale, Flame, Gavel, User } from 'lucide-react';
@@ -33,7 +32,10 @@ export const TheCouncil: React.FC<TheCouncilProps> = ({ session, language = AppL
     let currentTurn = 0;
     const interval = setInterval(() => {
       if (currentTurn < session.debate_transcript.length) {
-        setDisplayedTurns(prev => [...prev, session.debate_transcript[currentTurn]]);
+        const turn = session.debate_transcript[currentTurn];
+        if (turn) {
+          setDisplayedTurns(prev => [...prev, turn]);
+        }
         currentTurn++;
         // Auto scroll
         if (scrollRef.current) {
@@ -104,6 +106,7 @@ export const TheCouncil: React.FC<TheCouncilProps> = ({ session, language = AppL
         <div className="lg:col-span-2 p-6 bg-[url('https://www.transparenttextures.com/patterns/dark-leather.png')] bg-stone-900 flex flex-col">
            <div ref={scrollRef} className="flex-1 space-y-6 overflow-y-auto max-h-[500px] pr-2 scrollbar-thin scrollbar-thumb-stone-700 scrollbar-track-transparent">
              {displayedTurns.map((turn, idx) => {
+               if (!turn) return null;
                const isLeft = turn.speaker === 'Archaeologist';
                const isCenter = turn.speaker === 'Theologian';
                
