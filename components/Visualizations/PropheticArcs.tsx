@@ -1,162 +1,197 @@
+
 import React, { useMemo, useState } from 'react';
 import { CrossReference, AppLanguage } from '../../types';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, MousePointer2 } from 'lucide-react';
 
 interface PropheticArcsProps {
   data: CrossReference[];
   language?: AppLanguage;
 }
 
-// Canonical order of Bible books for mapping
+// Canonical order of Bible books with Chapter counts for precision mapping
 const BIBLE_BOOKS = [
   // Old Testament
-  { en: "Genesis", ru: "Бытие", div: "Pentateuch" },
-  { en: "Exodus", ru: "Исход", div: "Pentateuch" },
-  { en: "Leviticus", ru: "Левит", div: "Pentateuch" },
-  { en: "Numbers", ru: "Числа", div: "Pentateuch" },
-  { en: "Deuteronomy", ru: "Второзаконие", div: "Pentateuch" },
-  { en: "Joshua", ru: "Иисус Навин", div: "History" },
-  { en: "Judges", ru: "Судьи", div: "History" },
-  { en: "Ruth", ru: "Руфь", div: "History" },
-  { en: "1 Samuel", ru: "1 Царств", div: "History" },
-  { en: "2 Samuel", ru: "2 Царств", div: "History" },
-  { en: "1 Kings", ru: "3 Царств", div: "History" },
-  { en: "2 Kings", ru: "4 Царств", div: "History" },
-  { en: "1 Chronicles", ru: "1 Паралипоменон", div: "History" },
-  { en: "2 Chronicles", ru: "2 Паралипоменон", div: "History" },
-  { en: "Ezra", ru: "Ездра", div: "History" },
-  { en: "Nehemiah", ru: "Неемия", div: "History" },
-  { en: "Esther", ru: "Есфирь", div: "History" },
-  { en: "Job", ru: "Иов", div: "Poetry" },
-  { en: "Psalms", ru: "Псалтирь", div: "Poetry" },
-  { en: "Proverbs", ru: "Притчи", div: "Poetry" },
-  { en: "Ecclesiastes", ru: "Екклесиаст", div: "Poetry" },
-  { en: "Song of Solomon", ru: "Песня Песней", div: "Poetry" },
-  { en: "Isaiah", ru: "Исаия", div: "Prophets" },
-  { en: "Jeremiah", ru: "Иеремия", div: "Prophets" },
-  { en: "Lamentations", ru: "Плач Иеремии", div: "Prophets" },
-  { en: "Ezekiel", ru: "Иезекииль", div: "Prophets" },
-  { en: "Daniel", ru: "Даниил", div: "Prophets" },
-  { en: "Hosea", ru: "Осия", div: "Prophets" },
-  { en: "Joel", ru: "Иоиль", div: "Prophets" },
-  { en: "Amos", ru: "Амос", div: "Prophets" },
-  { en: "Obadiah", ru: "Авдий", div: "Prophets" },
-  { en: "Jonah", ru: "Иона", div: "Prophets" },
-  { en: "Micah", ru: "Михей", div: "Prophets" },
-  { en: "Nahum", ru: "Наум", div: "Prophets" },
-  { en: "Habakkuk", ru: "Аввакум", div: "Prophets" },
-  { en: "Zephaniah", ru: "Софония", div: "Prophets" },
-  { en: "Haggai", ru: "Аггей", div: "Prophets" },
-  { en: "Zechariah", ru: "Захария", div: "Prophets" },
-  { en: "Malachi", ru: "Малахия", div: "Prophets" },
+  { en: "Genesis", ru: "Бытие", div: "Pentateuch", chapters: 50 },
+  { en: "Exodus", ru: "Исход", div: "Pentateuch", chapters: 40 },
+  { en: "Leviticus", ru: "Левит", div: "Pentateuch", chapters: 27 },
+  { en: "Numbers", ru: "Числа", div: "Pentateuch", chapters: 36 },
+  { en: "Deuteronomy", ru: "Второзаконие", div: "Pentateuch", chapters: 34 },
+  { en: "Joshua", ru: "Иисус Навин", div: "History", chapters: 24 },
+  { en: "Judges", ru: "Судьи", div: "History", chapters: 21 },
+  { en: "Ruth", ru: "Руфь", div: "History", chapters: 4 },
+  { en: "1 Samuel", ru: "1 Царств", div: "History", chapters: 31 },
+  { en: "2 Samuel", ru: "2 Царств", div: "History", chapters: 24 },
+  { en: "1 Kings", ru: "3 Царств", div: "History", chapters: 22 },
+  { en: "2 Kings", ru: "4 Царств", div: "History", chapters: 25 },
+  { en: "1 Chronicles", ru: "1 Паралипоменон", div: "History", chapters: 29 },
+  { en: "2 Chronicles", ru: "2 Паралипоменон", div: "History", chapters: 36 },
+  { en: "Ezra", ru: "Ездра", div: "History", chapters: 10 },
+  { en: "Nehemiah", ru: "Неемия", div: "History", chapters: 13 },
+  { en: "Esther", ru: "Есфирь", div: "History", chapters: 10 },
+  { en: "Job", ru: "Иов", div: "Poetry", chapters: 42 },
+  { en: "Psalms", ru: "Псалтирь", div: "Poetry", chapters: 150 },
+  { en: "Proverbs", ru: "Притчи", div: "Poetry", chapters: 31 },
+  { en: "Ecclesiastes", ru: "Екклесиаст", div: "Poetry", chapters: 12 },
+  { en: "Song of Solomon", ru: "Песня Песней", div: "Poetry", chapters: 8 },
+  { en: "Isaiah", ru: "Исаия", div: "Prophets", chapters: 66 },
+  { en: "Jeremiah", ru: "Иеремия", div: "Prophets", chapters: 52 },
+  { en: "Lamentations", ru: "Плач Иеремии", div: "Prophets", chapters: 5 },
+  { en: "Ezekiel", ru: "Иезекииль", div: "Prophets", chapters: 48 },
+  { en: "Daniel", ru: "Даниил", div: "Prophets", chapters: 12 },
+  { en: "Hosea", ru: "Осия", div: "Prophets", chapters: 14 },
+  { en: "Joel", ru: "Иоиль", div: "Prophets", chapters: 3 },
+  { en: "Amos", ru: "Амос", div: "Prophets", chapters: 9 },
+  { en: "Obadiah", ru: "Авдий", div: "Prophets", chapters: 1 },
+  { en: "Jonah", ru: "Иона", div: "Prophets", chapters: 4 },
+  { en: "Micah", ru: "Михей", div: "Prophets", chapters: 7 },
+  { en: "Nahum", ru: "Наум", div: "Prophets", chapters: 3 },
+  { en: "Habakkuk", ru: "Аввакум", div: "Prophets", chapters: 3 },
+  { en: "Zephaniah", ru: "Софония", div: "Prophets", chapters: 3 },
+  { en: "Haggai", ru: "Аггей", div: "Prophets", chapters: 2 },
+  { en: "Zechariah", ru: "Захария", div: "Prophets", chapters: 14 },
+  { en: "Malachi", ru: "Малахия", div: "Prophets", chapters: 4 },
   // New Testament
-  { en: "Matthew", ru: "От Матфея", div: "Gospels" },
-  { en: "Mark", ru: "От Марка", div: "Gospels" },
-  { en: "Luke", ru: "От Луки", div: "Gospels" },
-  { en: "John", ru: "От Иоанна", div: "Gospels" },
-  { en: "Acts", ru: "Деяния", div: "History" },
-  { en: "Romans", ru: "Римлянам", div: "Epistles" },
-  { en: "1 Corinthians", ru: "1 Коринфянам", div: "Epistles" },
-  { en: "2 Corinthians", ru: "2 Коринфянам", div: "Epistles" },
-  { en: "Galatians", ru: "Галатам", div: "Epistles" },
-  { en: "Ephesians", ru: "Ефесянам", div: "Epistles" },
-  { en: "Philippians", ru: "Филиппийцам", div: "Epistles" },
-  { en: "Colossians", ru: "Колоссянам", div: "Epistles" },
-  { en: "1 Thessalonians", ru: "1 Фессалоникийцам", div: "Epistles" },
-  { en: "2 Thessalonians", ru: "2 Фессалоникийцам", div: "Epistles" },
-  { en: "1 Timothy", ru: "1 Тимофею", div: "Epistles" },
-  { en: "2 Timothy", ru: "2 Тимофею", div: "Epistles" },
-  { en: "Titus", ru: "Титу", div: "Epistles" },
-  { en: "Philemon", ru: "Филимону", div: "Epistles" },
-  { en: "Hebrews", ru: "Евреям", div: "Epistles" },
-  { en: "James", ru: "Иакова", div: "Epistles" },
-  { en: "1 Peter", ru: "1 Петра", div: "Epistles" },
-  { en: "2 Peter", ru: "2 Петра", div: "Epistles" },
-  { en: "1 John", ru: "1 Иоанна", div: "Epistles" },
-  { en: "2 John", ru: "2 Иоанна", div: "Epistles" },
-  { en: "3 John", ru: "3 Иоанна", div: "Epistles" },
-  { en: "Jude", ru: "Иуды", div: "Epistles" },
-  { en: "Revelation", ru: "Откровение", div: "Prophecy" }
+  { en: "Matthew", ru: "От Матфея", div: "Gospels", chapters: 28 },
+  { en: "Mark", ru: "От Марка", div: "Gospels", chapters: 16 },
+  { en: "Luke", ru: "От Луки", div: "Gospels", chapters: 24 },
+  { en: "John", ru: "От Иоанна", div: "Gospels", chapters: 21 },
+  { en: "Acts", ru: "Деяния", div: "History", chapters: 28 },
+  { en: "Romans", ru: "Римлянам", div: "Epistles", chapters: 16 },
+  { en: "1 Corinthians", ru: "1 Коринфянам", div: "Epistles", chapters: 16 },
+  { en: "2 Corinthians", ru: "2 Коринфянам", div: "Epistles", chapters: 13 },
+  { en: "Galatians", ru: "Галатам", div: "Epistles", chapters: 6 },
+  { en: "Ephesians", ru: "Ефесянам", div: "Epistles", chapters: 6 },
+  { en: "Philippians", ru: "Филиппийцам", div: "Epistles", chapters: 4 },
+  { en: "Colossians", ru: "Колоссянам", div: "Epistles", chapters: 4 },
+  { en: "1 Thessalonians", ru: "1 Фессалоникийцам", div: "Epistles", chapters: 5 },
+  { en: "2 Thessalonians", ru: "2 Фессалоникийцам", div: "Epistles", chapters: 3 },
+  { en: "1 Timothy", ru: "1 Тимофею", div: "Epistles", chapters: 6 },
+  { en: "2 Timothy", ru: "2 Тимофею", div: "Epistles", chapters: 4 },
+  { en: "Titus", ru: "Титу", div: "Epistles", chapters: 3 },
+  { en: "Philemon", ru: "Филимону", div: "Epistles", chapters: 1 },
+  { en: "Hebrews", ru: "Евреям", div: "Epistles", chapters: 13 },
+  { en: "James", ru: "Иакова", div: "Epistles", chapters: 5 },
+  { en: "1 Peter", ru: "1 Петра", div: "Epistles", chapters: 5 },
+  { en: "2 Peter", ru: "2 Петра", div: "Epistles", chapters: 3 },
+  { en: "1 John", ru: "1 Иоанна", div: "Epistles", chapters: 5 },
+  { en: "2 John", ru: "2 Иоанна", div: "Epistles", chapters: 1 },
+  { en: "3 John", ru: "3 Иоанна", div: "Epistles", chapters: 1 },
+  { en: "Jude", ru: "Иуды", div: "Epistles", chapters: 1 },
+  { en: "Revelation", ru: "Откровение", div: "Prophecy", chapters: 22 }
 ];
 
 export const PropheticArcs: React.FC<PropheticArcsProps> = ({ data, language = AppLanguage.ENGLISH }) => {
   const [hoveredArc, setHoveredArc] = useState<number | null>(null);
 
   const t = {
-    title: language === AppLanguage.RUSSIAN ? "Пророческая траектория" : "Prophetic Trajectory",
-    subtitle: language === AppLanguage.RUSSIAN ? "Божественные дуги от обетования к исполнению" : "Divine arcs from promise to fulfillment",
+    title: language === AppLanguage.RUSSIAN ? "Пророческая траектория (Deep:3)" : "Prophetic Trajectory (Deep:3)",
+    subtitle: language === AppLanguage.RUSSIAN ? "Божественные дуги: точное отображение связей" : "Divine arcs: precision cross-reference mapping",
     ot: "OT",
     nt: "NT"
   };
 
-  const getBookIndex = (ref: string): number => {
-    // Basic normalization: remove chapter/verse numbers
-    // e.g., "Isaiah 53:5" -> "Isaiah"
-    const bookName = ref.split(/\d+:/)[0].replace(/\d+$/, '').trim();
+  // Helper to extract Book Name and Chapter Number
+  const parseReference = (ref: string) => {
+    // Regex to capture "1 John 5:1" -> Book: "1 John", Chapter: 5
+    // or "Genesis 1:1" -> Book: "Genesis", Chapter: 1
+    // Handles Russian "От Матфея 24:16"
     
-    // Attempt to match against DB
-    const index = BIBLE_BOOKS.findIndex(b => 
+    // Split by last colon or space-digit
+    const match = ref.match(/^(.+?)\s+(\d+):/);
+    if (match) {
+      return { book: match[1].trim(), chapter: parseInt(match[2]) };
+    }
+    // Fallback if no chapter found (entire book ref)
+    return { book: ref.trim(), chapter: 1 };
+  };
+
+  const getBookInfo = (bookName: string) => {
+    return BIBLE_BOOKS.find(b => 
       b.en.toLowerCase() === bookName.toLowerCase() || 
       b.ru.toLowerCase() === bookName.toLowerCase() ||
       bookName.toLowerCase().includes(b.en.toLowerCase()) ||
       bookName.toLowerCase().includes(b.ru.toLowerCase())
     );
+  };
 
-    return index;
+  const getPrecisePosition = (ref: string): number => {
+    const { book, chapter } = parseReference(ref);
+    const bookIndex = BIBLE_BOOKS.findIndex(b => 
+      b.en.toLowerCase() === book.toLowerCase() || 
+      b.ru.toLowerCase() === book.toLowerCase() ||
+      book.toLowerCase().includes(b.en.toLowerCase()) ||
+      book.toLowerCase().includes(b.ru.toLowerCase())
+    );
+
+    if (bookIndex === -1) return -1;
+
+    const bookData = BIBLE_BOOKS[bookIndex];
+    // Calculate progress within the book (0.0 to 0.99)
+    // If chapter > max, clamp it.
+    const chapterProgress = Math.min((chapter - 1) / Math.max(bookData.chapters, 1), 0.9);
+    
+    return bookIndex + chapterProgress;
   };
 
   const arcs = useMemo(() => {
     return data.map((item, idx) => {
-      const startIndex = getBookIndex(item.primary_verse);
-      const endIndex = getBookIndex(item.related_verse);
+      const startPos = getPrecisePosition(item.primary_verse);
+      const endPos = getPrecisePosition(item.related_verse);
       
       return {
         ...item,
-        startIndex: startIndex === -1 ? 0 : startIndex,
-        endIndex: endIndex === -1 ? BIBLE_BOOKS.length - 1 : endIndex,
+        startPos: startPos === -1 ? 0 : startPos,
+        endPos: endPos === -1 ? BIBLE_BOOKS.length - 1 : endPos,
         originalIdx: idx
       };
-    }).filter(a => a.startIndex !== a.endIndex); // Filter out self-loops for this chart for clarity
+    }).filter(a => Math.abs(a.startPos - a.endPos) > 0.1); // Filter out extremely short intra-book links for this global view
   }, [data]);
 
   // Dimensions
   const width = 1000;
-  const height = 400;
-  const margin = { top: 40, right: 40, bottom: 60, left: 40 };
+  const height = 450;
+  const margin = { top: 60, right: 40, bottom: 60, left: 40 };
   const graphWidth = width - margin.left - margin.right;
   const graphHeight = height - margin.top - margin.bottom;
 
-  // Scale
-  const xScale = (index: number) => (index / (BIBLE_BOOKS.length - 1)) * graphWidth;
+  // Scale: Mapping 0..66 to 0..graphWidth
+  const xScale = (pos: number) => (pos / (BIBLE_BOOKS.length)) * graphWidth;
 
   if (!data || data.length === 0) return null;
 
   return (
-    <div className="bg-[#0f172a] rounded-xl shadow-lg border border-indigo-900/50 overflow-hidden text-white relative">
+    <div className="bg-[#0b0f19] rounded-xl shadow-2xl border border-indigo-900/50 overflow-hidden text-white relative group">
+      {/* Background Grid Effect */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(17,24,39,0)_1px,transparent_1px),linear-gradient(90deg,rgba(17,24,39,0)_1px,transparent_1px)] bg-[size:40px_40px] opacity-10 pointer-events-none"></div>
+
       {/* Header */}
-      <div className="p-6 border-b border-indigo-900/30 flex items-center gap-3 bg-[#0f172a] relative z-10">
-        <div className="bg-indigo-500/20 p-2 rounded-lg text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+      <div className="p-6 border-b border-indigo-900/30 flex items-center gap-3 bg-[#0b0f19] relative z-10">
+        <div className="bg-indigo-500/10 p-2 rounded-lg text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
           <Sparkles size={24} />
         </div>
         <div>
-          <h3 className="text-xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-indigo-200">
+          <h3 className="text-xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-100 to-indigo-200">
             {t.title}
           </h3>
           <p className="text-sm text-indigo-300/60 font-light">{t.subtitle}</p>
         </div>
       </div>
 
-      <div className="relative overflow-x-auto">
-        <div style={{ width: '100%', minWidth: '800px' }}>
+      <div className="relative overflow-x-auto custom-scrollbar">
+        <div style={{ width: '100%', minWidth: '900px' }}>
           <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto">
             <defs>
               <linearGradient id="arcGradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2={height}>
-                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.8" /> {/* Amber/Gold */}
-                <stop offset="100%" stopColor="#6366f1" stopOpacity="0.3" /> {/* Indigo */}
+                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.9" /> {/* Gold Promise */}
+                <stop offset="50%" stopColor="#f472b6" stopOpacity="0.5" /> {/* Pink Transition */}
+                <stop offset="100%" stopColor="#6366f1" stopOpacity="0.9" /> {/* Indigo Fulfillment */}
               </linearGradient>
-              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="2" result="blur" />
-                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
               </filter>
             </defs>
 
@@ -168,55 +203,42 @@ export const PropheticArcs: React.FC<PropheticArcsProps> = ({ data, language = A
                 x2={graphWidth} 
                 y2={graphHeight} 
                 stroke="#334155" 
-                strokeWidth="1" 
+                strokeWidth="2" 
+                strokeLinecap="round"
               />
 
-              {/* Major Divisions */}
-              {[0, 39].map(idx => (
-                 <text 
-                   key={idx}
-                   x={xScale(idx)} 
-                   y={graphHeight + 30} 
-                   fill="#94a3b8" 
-                   fontSize="12" 
-                   fontWeight="bold"
-                   textAnchor="middle"
-                 >
-                   {idx === 0 ? t.ot : t.nt}
-                 </text>
-              ))}
+              {/* Major Divisions (OT/NT) */}
+              <text x={xScale(0)} y={graphHeight + 40} fill="#64748b" fontSize="14" fontWeight="bold" opacity="0.5">GEN</text>
+              <text x={xScale(39)} y={graphHeight + 40} fill="#fbbf24" fontSize="14" fontWeight="bold" textAnchor="middle" opacity="0.8">✝ {t.nt}</text>
+              <text x={xScale(65)} y={graphHeight + 40} fill="#64748b" fontSize="14" fontWeight="bold" textAnchor="end" opacity="0.5">REV</text>
 
               {/* Book Ticks */}
               {BIBLE_BOOKS.map((book, i) => (
                 <g key={i} transform={`translate(${xScale(i)}, ${graphHeight})`}>
-                  <circle cx="0" cy="0" r="2" fill={i < 39 ? "#fbbf24" : "#818cf8"} opacity="0.6" />
-                  {/* Show label only for significant books to avoid clutter */}
-                  {(i === 0 || i === 39 || i === 65 || i % 10 === 0) && (
-                    <text 
-                      y="15" 
-                      textAnchor="middle" 
-                      fill="#64748b" 
-                      fontSize="9"
-                      opacity="0.7"
-                    >
-                      {language === AppLanguage.ENGLISH ? book.en.substring(0, 3) : book.ru.substring(0, 3)}
-                    </text>
-                  )}
+                  {/* Tick line */}
+                  <line y1="0" y2="5" stroke={i < 39 ? "#475569" : "#6366f1"} strokeWidth={i % 5 === 0 ? 2 : 1} opacity="0.5" />
+                  
+                  {/* Hover Hitbox for Book Name */}
+                  <rect x="-5" y="0" width="10" height="20" fill="transparent">
+                    <title>{language === AppLanguage.ENGLISH ? book.en : book.ru} ({book.chapters} ch)</title>
+                  </rect>
                 </g>
               ))}
 
               {/* Arcs */}
               {arcs.map((arc, i) => {
-                const x1 = xScale(arc.startIndex);
-                const x2 = xScale(arc.endIndex);
+                const x1 = xScale(arc.startPos);
+                const x2 = xScale(arc.endPos);
                 const distance = Math.abs(x2 - x1);
                 const y = graphHeight;
                 
-                // Height of arc depends on distance
-                const arcHeight = Math.min(graphHeight - 20, distance * 0.8 + 20);
-                const controlY = y - arcHeight * 1.5;
+                // Height of arc depends on distance (Prophetic span)
+                // Max height constrained to stay within view
+                const arcHeight = Math.min(graphHeight - 20, distance * 0.6 + 40);
+                const controlY = y - arcHeight * 1.8; // Control point pulls curve up
 
                 const isHovered = hoveredArc === i;
+                const opacity = hoveredArc === null ? 0.6 : (isHovered ? 1 : 0.1);
 
                 return (
                   <g key={i} 
@@ -224,19 +246,31 @@ export const PropheticArcs: React.FC<PropheticArcsProps> = ({ data, language = A
                      onMouseLeave={() => setHoveredArc(null)}
                      className="cursor-pointer transition-all duration-300"
                   >
+                    {/* Hitbox Path (Invisible, thicker) */}
+                    <path
+                      d={`M ${x1} ${y} Q ${(x1 + x2) / 2} ${controlY} ${x2} ${y}`}
+                      fill="none"
+                      stroke="transparent"
+                      strokeWidth="15"
+                    />
+
+                    {/* Visible Arc */}
                     <path
                       d={`M ${x1} ${y} Q ${(x1 + x2) / 2} ${controlY} ${x2} ${y}`}
                       fill="none"
                       stroke={isHovered ? "#fbbf24" : "url(#arcGradient)"}
                       strokeWidth={isHovered ? 3 : 1.5}
-                      strokeOpacity={isHovered ? 1 : 0.6}
+                      strokeOpacity={opacity}
                       filter={isHovered ? "url(#glow)" : ""}
+                      strokeLinecap="round"
                     />
-                    {isHovered && (
-                      <circle cx={x2} cy={y} r="4" fill="#fbbf24" />
-                    )}
-                     {isHovered && (
-                      <circle cx={x1} cy={y} r="4" fill="#fbbf24" />
+                    
+                    {/* Precise Start/End Dots */}
+                    {(isHovered || hoveredArc === null) && (
+                      <>
+                        <circle cx={x1} cy={y} r={isHovered ? 4 : 2} fill="#fbbf24" opacity={opacity} />
+                        <circle cx={x2} cy={y} r={isHovered ? 4 : 2} fill="#6366f1" opacity={opacity} />
+                      </>
                     )}
                   </g>
                 );
@@ -245,25 +279,33 @@ export const PropheticArcs: React.FC<PropheticArcsProps> = ({ data, language = A
           </svg>
         </div>
 
-        {/* Tooltip Overlay */}
+        {/* Dynamic Tooltip Overlay */}
         {hoveredArc !== null && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-md text-white p-4 rounded-xl border border-amber-500/30 shadow-2xl max-w-sm pointer-events-none z-20 transition-all duration-300 animate-fade-in">
-             <div className="flex items-center gap-2 mb-2">
-                <span className="font-serif font-bold text-amber-400">{arcs[hoveredArc].primary_verse}</span>
-                <ArrowRight size={14} className="text-gray-400" />
-                <span className="font-serif font-bold text-indigo-400">{arcs[hoveredArc].related_verse}</span>
+          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-[#0b0f19]/90 backdrop-blur-md text-white p-4 rounded-xl border border-amber-500/30 shadow-[0_0_30px_rgba(0,0,0,0.5)] max-w-sm pointer-events-none z-20 animate-fade-in text-center">
+             <div className="flex items-center justify-center gap-3 mb-2">
+                <span className="font-serif font-bold text-amber-400 text-lg">{arcs[hoveredArc].primary_verse}</span>
+                <ArrowRight size={16} className="text-gray-500" />
+                <span className="font-serif font-bold text-indigo-400 text-lg">{arcs[hoveredArc].related_verse}</span>
              </div>
-             <div className="text-xs font-bold uppercase tracking-wider bg-white/10 inline-block px-2 py-0.5 rounded mb-2 text-gray-300">
+             <div className="text-[10px] font-bold uppercase tracking-widest bg-gradient-to-r from-amber-900/40 to-indigo-900/40 border border-white/10 px-2 py-1 rounded mb-3 text-gray-300 inline-block">
                 {arcs[hoveredArc].connection_type}
              </div>
-             <p className="text-sm text-gray-300 italic leading-relaxed">
-               {arcs[hoveredArc].description}
+             <p className="text-sm text-gray-300 italic leading-relaxed font-serif">
+               "{arcs[hoveredArc].description}"
              </p>
           </div>
         )}
 
+        {/* Empty State Hint */}
+        {hoveredArc === null && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none text-indigo-500/20 flex flex-col items-center gap-2">
+            <MousePointer2 size={32} />
+            <span className="text-xs uppercase tracking-widest">Hover arcs to reveal connections</span>
+          </div>
+        )}
+
         <div className="absolute bottom-2 right-4 text-[10px] text-slate-600 italic">
-          *Canonical Axis (Gen -&gt; Rev)
+          *Canonical Axis (Gen -&gt; Rev) • Precise Chapter Mapping
         </div>
       </div>
     </div>
