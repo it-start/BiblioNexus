@@ -48,10 +48,10 @@ export const EtymologicalPrism: React.FC<EtymologicalPrismProps> = ({ data, lang
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 h-[500px]">
         
         {/* The Prism Visualization */}
-        <div className="lg:col-span-2 bg-[#0f172a] relative overflow-hidden flex items-center justify-center p-6 min-h-[400px]">
+        <div className="lg:col-span-2 bg-[#0f172a] relative overflow-hidden flex items-center justify-center p-6 h-full">
           {/* Background Ambient Light */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -194,54 +194,56 @@ export const EtymologicalPrism: React.FC<EtymologicalPrismProps> = ({ data, lang
           </svg>
         </div>
 
-        {/* Details Panel */}
-        <div className="bg-slate-50 p-6 flex flex-col h-full border-l border-stone-200">
-           {hoveredRoot !== null ? (
-             <div className="animate-fade-in">
-               <div className="flex items-center gap-2 mb-2">
-                 <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide ${data.roots[hoveredRoot].language === 'Hebrew' ? 'bg-amber-100 text-amber-700' : 'bg-sky-100 text-sky-700'}`}>
-                   {data.roots[hoveredRoot].language}
-                 </span>
-                 <span className="text-slate-400 text-xs font-mono">{data.roots[hoveredRoot].usage_count} {t.occurrences}</span>
-               </div>
-               
-               <h2 className="text-3xl font-serif font-bold text-slate-800 mb-1">
-                 {data.roots[hoveredRoot].transliteration}
-               </h2>
-               <div className="text-2xl font-serif text-slate-400 mb-4 font-light">
-                 {data.roots[hoveredRoot].original_word}
-               </div>
+        {/* Details Panel - Fixed Height Container */}
+        <div className="bg-slate-50 border-l border-stone-200 h-full overflow-hidden flex flex-col">
+           <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-stone-200">
+             {hoveredRoot !== null ? (
+               <div className="animate-fade-in">
+                 <div className="flex items-center gap-2 mb-2">
+                   <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide ${data.roots[hoveredRoot].language === 'Hebrew' ? 'bg-amber-100 text-amber-700' : 'bg-sky-100 text-sky-700'}`}>
+                     {data.roots[hoveredRoot].language}
+                   </span>
+                   <span className="text-slate-400 text-xs font-mono">{data.roots[hoveredRoot].usage_count} {t.occurrences}</span>
+                 </div>
+                 
+                 <h2 className="text-3xl font-serif font-bold text-slate-800 mb-1">
+                   {data.roots[hoveredRoot].transliteration}
+                 </h2>
+                 <div className="text-2xl font-serif text-slate-400 mb-4 font-light">
+                   {data.roots[hoveredRoot].original_word}
+                 </div>
 
-               <div className="bg-white p-4 rounded-lg shadow-sm border border-stone-100 mb-4">
-                 <h4 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1">
-                   <BookOpen size={12} /> Definition
-                 </h4>
-                 <p className="text-slate-700 leading-relaxed font-serif text-lg">
-                   {data.roots[hoveredRoot].meaning}
-                 </p>
-               </div>
+                 <div className="bg-white p-4 rounded-lg shadow-sm border border-stone-100 mb-4">
+                   <h4 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1">
+                     <BookOpen size={12} /> Definition
+                   </h4>
+                   <p className="text-slate-700 leading-relaxed font-serif text-lg">
+                     {data.roots[hoveredRoot].meaning}
+                   </p>
+                 </div>
 
-               <div>
-                 <h4 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1">
-                   <Search size={12} /> {t.context}
-                 </h4>
-                 <p className="text-sm text-slate-600 italic leading-relaxed">
-                   "{data.roots[hoveredRoot].usage_context}"
+                 <div>
+                   <h4 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1">
+                     <Search size={12} /> {t.context}
+                   </h4>
+                   <p className="text-sm text-slate-600 italic leading-relaxed">
+                     "{data.roots[hoveredRoot].usage_context}"
+                   </p>
+                 </div>
+               </div>
+             ) : (
+               <div className="flex flex-col items-center justify-center h-full text-center p-6 text-slate-400">
+                 <Sparkles size={48} className="mb-4 opacity-20" />
+                 <p className="text-sm">{t.synthesis}</p>
+                 <p className="text-slate-600 mt-4 leading-relaxed font-serif italic border-l-2 border-indigo-200 pl-4 text-left">
+                   "{data.synthesis}"
                  </p>
+                 <div className="mt-8 text-xs bg-slate-200/50 px-3 py-1 rounded-full">
+                   Hover over a node to inspect isotopes
+                 </div>
                </div>
-             </div>
-           ) : (
-             <div className="flex flex-col items-center justify-center h-full text-center p-6 text-slate-400">
-               <Sparkles size={48} className="mb-4 opacity-20" />
-               <p className="text-sm">{t.synthesis}</p>
-               <p className="text-slate-600 mt-4 leading-relaxed font-serif italic border-l-2 border-indigo-200 pl-4 text-left">
-                 "{data.synthesis}"
-               </p>
-               <div className="mt-8 text-xs bg-slate-200/50 px-3 py-1 rounded-full">
-                 Hover over a node to inspect isotopes
-               </div>
-             </div>
-           )}
+             )}
+           </div>
         </div>
 
       </div>

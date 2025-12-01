@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { CouncilSession, DebateTurn, AppLanguage, CouncilRole } from '../types';
 import { Scroll, Shovel, Scale, Flame, Gavel, User } from 'lucide-react';
