@@ -40,7 +40,7 @@ const PROMPT_TEMPLATES: Record<AppLanguage, AgentPrompt> = {
       Task:
       Critique this analysis. Calculate the Truth Fidelity (Agreement Score).
       Identify any divergence. Provide missing citations if any.
-      Finally, submit your review using the 'submit_theological_review' tool.
+      Finally, submit your review.
     `
   },
   [AppLanguage.RUSSIAN]: {
@@ -66,9 +66,18 @@ const PROMPT_TEMPLATES: Record<AppLanguage, AgentPrompt> = {
       Задача:
       Дайте критическую оценку этому анализу. Рассчитайте верность истине (Оценка согласия).
       Выявите любые расхождения. Укажите пропущенные важные места Писания, если таковые имеются.
-      В конце отправьте ваш обзор, используя инструмент 'submit_theological_review'.
+      Отправьте ваш обзор.
     `
   }
+};
+
+const REVIEW_SCHEMA = {
+  agreement_score: "integer (0-100)",
+  truth_fidelity_analysis: "string (critique)",
+  consensus_points: "array of strings",
+  divergent_points: "array of strings",
+  missed_citations: "array of objects { book, chapter, verse_start, text, relevance }",
+  cross_examination: "string (synthesis)"
 };
 
 export class TheologicalGardener {
@@ -94,7 +103,14 @@ export class TheologicalGardener {
 
     // 2. Hydrate prompts
     const systemPrompt = template.identity;
-    const userContent = template.task(topic, analysis);
+    let userContent = template.task(topic, analysis);
+
+    const agentId = process.env.MISTRAL_AGENT_ID;
+
+    // If using an Agent, we can't always inject tools, so we explicitly ask for JSON in the prompt
+    if (agentId) {
+      userContent += `\n\nIMPORTANT: You must output strictly valid JSON matching this schema:\n${JSON.stringify(REVIEW_SCHEMA, null, 2)}`;
+    }
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -156,16 +172,16 @@ export class TheologicalGardener {
 
     try {
       let response;
-      const agentId = process.env.MISTRAL_AGENT_ID;
-
+      
       // Decide whether to use Agents API or Chat API
       if (agentId) {
         // Use Mistral Agents API
+        // NOTE: We DO NOT pass 'tools' here to avoid conflict if the Agent has its own tools.
+        // We rely on the prompt to generate JSON and then parse the content.
         response = await this.client.agents.complete({
           agentId: agentId,
           messages: messages as any,
-          tools: tools,
-          toolChoice: 'auto'
+          // tools removed to fix: "Cannot set function calling tools in the request and have tools in the agent"
         });
       } else {
         // Use Mistral Chat API (default model)
@@ -177,29 +193,52 @@ export class TheologicalGardener {
         });
       }
 
-      const toolCall = response.choices?.[0]?.message?.toolCalls?.[0];
+      const choice = response.choices?.[0];
+      const toolCall = choice?.message?.toolCalls?.[0];
       
+      // Case A: The model used the tool (Standard Chat API behavior)
       if (toolCall && toolCall.function.name === 'submit_theological_review') {
         const args = JSON.parse(toolCall.function.arguments as string);
-        
-        return {
-          reviewer_name: agentId ? "Mistral Agent (Theological Gardener)" : "Mistral Large (Theological Gardener)",
-          agreement_score: args.agreement_score,
-          truth_fidelity_analysis: args.truth_fidelity_analysis,
-          consensus_points: args.consensus_points,
-          divergent_points: args.divergent_points,
-          missed_citations: args.missed_citations || [],
-          cross_examination: args.cross_examination
-        } as PeerReview;
+        return this.formatReview(args, agentId);
       }
 
-      console.warn("🌿 The Gardener spoke, but did not use the tool. Returning manual parse.");
+      // Case B: The model/agent returned raw JSON text (Agent API behavior with prompt engineering)
+      if (choice?.message?.content) {
+        try {
+          // Attempt to extract JSON from the content (handles markdown code blocks)
+          const content = choice.message.content;
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const args = JSON.parse(jsonMatch[0]);
+            // Validate basic structure
+            if (args.agreement_score && args.consensus_points) {
+               return this.formatReview(args, agentId);
+            }
+          }
+        } catch (e) {
+          console.warn("🌿 Failed to parse JSON from Agent response text.");
+        }
+      }
+
+      console.warn("🌿 The Gardener spoke, but did not use the tool or valid JSON. Returning null.");
       return null;
 
     } catch (error) {
       console.error("🔥 Blight detected in the garden (Mistral Error):", error);
       return null;
     }
+  }
+
+  private formatReview(args: any, agentId?: string): PeerReview {
+    return {
+      reviewer_name: agentId ? "Mistral Agent (Theological Gardener)" : "Mistral Large (Theological Gardener)",
+      agreement_score: args.agreement_score || 0,
+      truth_fidelity_analysis: args.truth_fidelity_analysis || "No analysis provided.",
+      consensus_points: args.consensus_points || [],
+      divergent_points: args.divergent_points || [],
+      missed_citations: args.missed_citations || [],
+      cross_examination: args.cross_examination || "No synthesis provided."
+    };
   }
 }
 
