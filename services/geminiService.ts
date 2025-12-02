@@ -313,15 +313,17 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
         - If the topic is abstract (e.g. "Love"), skip this or focus on a relevant location like "Golgotha" or "Temple Mount".
   `;
 
+  const config = {
+    responseMimeType: "application/json",
+    responseSchema: analysisSchema,
+    systemInstruction: "You are a rigorous biblical scholar and data analyst. Your goal is to provide accurate, cited, and deep structured analysis of biblical entities. Never invent scripture. Focus on the organic unity of the Bible.",
+  };
+
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview', // Using high-reasoning model for strict analysis
       contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: analysisSchema,
-        systemInstruction: "You are a rigorous biblical scholar and data analyst. Your goal is to provide accurate, cited, and deep structured analysis of biblical entities. Never invent scripture. Focus on the organic unity of the Bible.",
-      }
+      config: config
     });
 
     const text = response.text;
@@ -329,8 +331,21 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
     
     return JSON.parse(text) as AnalysisData;
   } catch (error) {
-    console.error("Analysis failed", error);
-    throw error;
+    console.warn("Primary model (Gemini 3 Pro) failed, attempting fallback to Gemini 2.5 Flash", error);
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: config
+      });
+      
+      const text = response.text;
+      if (!text) throw new Error("No response from AI (Fallback)");
+      return JSON.parse(text) as AnalysisData;
+    } catch (fallbackError) {
+      console.error("Analysis failed (Primary & Fallback)", fallbackError);
+      throw fallbackError;
+    }
   }
 };
 
@@ -364,15 +379,17 @@ export const conveneCouncil = async (topic: string, language: AppLanguage): Prom
     - Finally, they must arrive at a 'Consensus Statement' (Verdict) that synthesizes their views into a higher truth.
   `;
 
+  const config = {
+    responseMimeType: "application/json",
+    responseSchema: councilSchema,
+    systemInstruction: "You are the Recording Scribe for the High Council of Biblical Studies. Transcribe the debate faithfully.",
+  };
+
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-preview',
       contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: councilSchema,
-        systemInstruction: "You are the Recording Scribe for the High Council of Biblical Studies. Transcribe the debate faithfully.",
-      }
+      config: config
     });
 
     const text = response.text;
@@ -380,8 +397,21 @@ export const conveneCouncil = async (topic: string, language: AppLanguage): Prom
 
     return JSON.parse(text) as CouncilSession;
   } catch (error) {
-    console.error("Council Session failed", error);
-    throw error;
+    console.warn("Council Session (Gemini 3 Pro) failed, attempting fallback to Gemini 2.5 Flash", error);
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: config
+      });
+      
+      const text = response.text;
+      if (!text) throw new Error("No response from AI for Council (Fallback)");
+      return JSON.parse(text) as CouncilSession;
+    } catch (fallbackError) {
+       console.error("Council Session failed (Primary & Fallback)", fallbackError);
+       throw fallbackError;
+    }
   }
 };
 
@@ -389,11 +419,13 @@ export const generateBiblicalImage = async (prompt: string, size: ImageSize): Pr
   // Fix: Use process.env.API_KEY directly
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
+  const textContent = { text: `A historically accurate, respectful, and cinematic biblical scene depiction: ${prompt}` };
+
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-image-preview',
       contents: {
-        parts: [{ text: `A historically accurate, respectful, and cinematic biblical scene depiction: ${prompt}` }]
+        parts: [textContent]
       },
       config: {
         imageConfig: {
@@ -412,8 +444,31 @@ export const generateBiblicalImage = async (prompt: string, size: ImageSize): Pr
     
     throw new Error("No image data received");
   } catch (error) {
-    console.error("Image generation failed", error);
-    throw error;
+    console.warn("Image generation (Gemini 3 Pro) failed, attempting fallback to Gemini 2.5 Flash Image", error);
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image', // Fallback model
+            contents: {
+                parts: [textContent]
+            },
+            config: {
+                imageConfig: {
+                    aspectRatio: "16:9" 
+                    // Note: gemini-2.5-flash-image does NOT support imageSize config
+                }
+            }
+        });
+
+        for (const part of response.candidates?.[0]?.content?.parts || []) {
+            if (part.inlineData) {
+                return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+            }
+        }
+        throw new Error("No image data received from fallback");
+    } catch (fallbackError) {
+        console.error("Image generation failed (Primary & Fallback)", fallbackError);
+        throw fallbackError;
+    }
   }
 };
 
