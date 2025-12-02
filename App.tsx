@@ -7,6 +7,7 @@ import { ImageGenerator } from './components/ImageGenerator';
 import { ParallelsGuide } from './components/ParallelsGuide';
 import { analyzeBibleTopic } from './services/geminiService';
 import { getMistralReview } from './services/mistralService';
+import { getCohereDefense } from './services/cohereService';
 import { AnalysisData, AppLanguage } from './types';
 
 function App() {
@@ -14,7 +15,7 @@ function App() {
   const [language, setLanguage] = useState<AppLanguage>(AppLanguage.ENGLISH);
   const [data, setData] = useState<AnalysisData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [reviewLoading, setReviewLoading] = useState(false); // State for secondary AI
+  const [reviewLoading, setReviewLoading] = useState(false); 
   const [error, setError] = useState<string | null>(null);
 
   const t = {
@@ -27,7 +28,7 @@ function App() {
       : "Strict theological analysis • Verified citations • Visual mapping • Scene generation",
     errorTitle: language === AppLanguage.RUSSIAN ? "Ошибка анализа" : "Analysis Error",
     errorMessage: language === AppLanguage.RUSSIAN ? "Не удалось проанализировать эту тему. Пожалуйста, убедитесь, что она связана с Библией, и повторите попытку." : "Unable to analyze this topic. Please ensure it is related to the Bible and try again.",
-    reviewing: language === AppLanguage.RUSSIAN ? "Совет ИИ проводит перекрестную проверку..." : "AI Council is cross-referencing..."
+    reviewing: language === AppLanguage.RUSSIAN ? "Совет ИИ и Апологет работают..." : "AI Council & Apologist active..."
   };
 
   const handleSearch = async () => {
@@ -35,7 +36,7 @@ function App() {
     
     setLoading(true);
     setError(null);
-    setData(null); // Clear previous results to show loading state cleanly
+    setData(null);
 
     try {
       // 1. Primary Analysis (Gemini)
@@ -43,15 +44,31 @@ function App() {
       setData(result);
       setLoading(false);
 
-      // 2. Peer Review (Mistral) - Non-blocking or subtle loading state
+      // 2. Multi-Agent Processing (Mistral & Cohere)
+      setReviewLoading(true);
+      
+      const promises = [];
+      
+      // Mistral Peer Review
       if (process.env.MISTRAL_API_KEY) {
-        setReviewLoading(true);
-        const review = await getMistralReview(query, result, language);
-        if (review) {
-          setData(prev => prev ? { ...prev, peer_review: review } : null);
-        }
-        setReviewLoading(false);
+        promises.push(
+          getMistralReview(query, result, language).then(review => {
+            if (review) setData(prev => prev ? { ...prev, peer_review: review } : null);
+          })
+        );
       }
+
+      // Cohere Apologetics
+      if (process.env.COHERE_API_KEY) {
+        promises.push(
+          getCohereDefense(query, result, language).then(defense => {
+             if (defense) setData(prev => prev ? { ...prev, apologetics: defense } : null);
+          })
+        );
+      }
+
+      await Promise.allSettled(promises);
+      setReviewLoading(false);
 
     } catch (err) {
       console.error(err);

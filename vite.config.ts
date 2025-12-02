@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
   const googleApiKey = env.GEMINI_API_KEY || env.API_KEY || env.GOOGLE_API_KEY;
   const mistralApiKey = env.MISTRAL_API_KEY;
   const mistralAgentId = env.MISTRAL_AGENT_ID;
+  const cohereApiKey = env.COHERE_API_KEY;
 
   return {
     plugins: [react()],
@@ -20,6 +21,7 @@ export default defineConfig(({ mode }) => {
       'process.env.API_KEY': JSON.stringify(googleApiKey),
       'process.env.MISTRAL_API_KEY': JSON.stringify(mistralApiKey),
       'process.env.MISTRAL_AGENT_ID': JSON.stringify(mistralAgentId),
+      'process.env.COHERE_API_KEY': JSON.stringify(cohereApiKey),
     },
   };
 });

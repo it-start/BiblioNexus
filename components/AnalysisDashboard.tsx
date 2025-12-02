@@ -14,6 +14,7 @@ import { BioGeneticAnalysis } from './Visualizations/BioGeneticAnalysis';
 import { EtymologicalPrism } from './Visualizations/EtymologicalPrism';
 import { ChronoMap } from './Visualizations/ChronoMap';
 import { PeerReviewPanel } from './PeerReviewPanel';
+import { ApologeticsPanel } from './ApologeticsPanel';
 import { TheCouncil } from './TheCouncil';
 import { conveneCouncil } from '../services/geminiService';
 import { BookOpen, Share2, Activity, Info, Anchor, FileText, Network, History, Gavel, Loader2 } from 'lucide-react';
@@ -49,8 +50,6 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
   };
 
   const handleConveneCouncil = async () => {
-    // Determine the topic from summary or use a generic fallback if prompt not strictly available here
-    // In a real app we might pass the query prop down, but here we can infer or use the first theme name
     const topic = data.themes[0]?.name || "Theological Analysis"; 
     setLoadingCouncil(true);
     try {
@@ -63,12 +62,11 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
     }
   };
 
-  // Transform cross_references to Relationship format for graph visualization
   const crossReferenceRelationships: Relationship[] = data.cross_references?.map(ref => ({
     source: ref.primary_verse,
     target: ref.related_verse,
     type: ref.connection_type,
-    strength: 5, // Default strength
+    strength: 5, 
     description: ref.description
   })) || [];
 
@@ -77,7 +75,6 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
       
       {/* Top Section: Summary & Context */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Summary Card */}
         <div className="md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-stone-200">
           <div className="flex items-center gap-2 mb-4 text-indigo-800">
             <BookOpen className="w-5 h-5" />
@@ -88,7 +85,6 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
           </p>
         </div>
 
-        {/* Historical Context */}
         <div className="bg-stone-50 p-6 rounded-xl border border-stone-200">
           <div className="flex items-center gap-2 mb-4 text-amber-700">
             <Info className="w-5 h-5" />
@@ -119,10 +115,17 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         <TheCouncil session={councilSession} language={language} />
       )}
 
-      {/* Peer Review Panel (Truth Finding) */}
+      {/* Peer Review Panel (Mistral) */}
       {data.peer_review && (
         <div className="my-8">
           <PeerReviewPanel review={data.peer_review} language={language} />
+        </div>
+      )}
+
+      {/* Apologetics Panel (Cohere) */}
+      {data.apologetics && (
+        <div className="my-8">
+          <ApologeticsPanel data={data.apologetics} language={language} />
         </div>
       )}
 
@@ -134,14 +137,14 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         </p>
       </div>
 
-      {/* Etymological Spectrometry (Source Code Analysis) */}
+      {/* Etymological Spectrometry */}
       {data.etymology && (
         <div className="my-8">
           <EtymologicalPrism data={data.etymology} language={language} />
         </div>
       )}
 
-      {/* Chrono-Spatial 4D Reconstruction (Time Travel Map) - NEW */}
+      {/* Chrono-Spatial 4D Reconstruction */}
       {data.chrono_spatial && data.chrono_spatial.eras && data.chrono_spatial.eras.length > 0 && (
          <div className="my-8">
            <ChronoMap data={data.chrono_spatial} language={language} />
@@ -159,34 +162,33 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         </div>
       )}
 
-      {/* Prophetic Arcs (Divine Trajectory) */}
+      {/* Prophetic Arcs */}
       {data.cross_references && data.cross_references.length > 0 && (
         <div className="my-8">
           <PropheticArcs data={data.cross_references} language={language} />
         </div>
       )}
 
-      {/* Bio-Genetic Sequencer (Bible as DNA) */}
+      {/* Bio-Genetic Sequencer */}
       {data.bio_theology && (
         <div className="my-8">
            <BioGeneticAnalysis data={data.bio_theology} language={language} />
         </div>
       )}
 
-      {/* Algorithmic Analysis (Bible as Code) */}
+      {/* Algorithmic Analysis */}
       {data.algorithmic_analysis && (
         <div className="my-8">
            <BiblicalAlgorithm data={data.algorithmic_analysis} language={language} />
         </div>
       )}
 
-      {/* Geographical Map (Standard) */}
-      {/* Only show if we don't have the 4D map, or show below it for broader context */}
+      {/* Geographical Map */}
       {data.locations && data.locations.length > 0 && (
         <BiblicalMap locations={data.locations} language={language} />
       )}
 
-      {/* Pattern Cluster Analysis (Repetitive Logic) */}
+      {/* Pattern Cluster Analysis */}
       <div className="my-8">
          <PatternCluster 
            citations={data.citations} 
@@ -212,7 +214,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         </div>
       </div>
 
-      {/* Network Graph for Interconnections */}
+      {/* Network Graph */}
       {crossReferenceRelationships.length > 0 && (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
           <div className="flex items-center gap-2 mb-2 text-indigo-900">
@@ -236,7 +238,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
           <ThemeChart data={data.themes} language={language} />
         </div>
 
-        {/* Relationship Network (People) */}
+        {/* Relationship Network */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
           <div className="flex items-center gap-2 mb-6 text-indigo-800">
             <Share2 className="w-5 h-5" />
@@ -250,7 +252,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         </div>
       </div>
 
-      {/* Citations List (Strict) */}
+      {/* Citations List */}
       <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
         <div className="bg-stone-100 p-4 border-b border-stone-200 flex items-center gap-2">
           <Anchor className="w-5 h-5 text-stone-600" />

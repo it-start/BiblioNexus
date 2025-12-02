@@ -136,7 +136,7 @@ export interface HistoricalEra {
 }
 
 export interface ChronoSpatialAnalysis {
-  location_name: string; // The main location being analyzed (e.g. Jerusalem)
+  location_name: string; // The main location being analyzed (e.g. Jerusalem, Babylon)
   eras: HistoricalEra[];
 }
 
@@ -173,6 +173,20 @@ export interface PeerReview {
   cross_examination: string; // A synthesis of the comparison
 }
 
+// --- Cohere Apologetics Types ---
+
+export interface ApologeticPoint {
+  claim: string;
+  rebuttal: string;
+  scripture_defense: string;
+}
+
+export interface ApologeticsData {
+  cultural_context: string; // How this relates to modern day (Zeitgeist)
+  hard_questions: ApologeticPoint[]; // Top 2-3 skeptic objections
+  ethical_imperative: string; // The "So What" / Actionable conclusion
+}
+
 export interface AnalysisData {
   summary: string;
   theological_insight: string;
@@ -185,11 +199,12 @@ export interface AnalysisData {
   locations: BiblicalLocation[];
   key_figures: KeyFigure[];
   algorithmic_analysis: AlgorithmicAnalysis;
-  bio_theology?: BioTheology; // New field for DNA Analysis
-  etymology?: EtymologyAnalysis; // New field for Source Code Analysis
-  chrono_spatial?: ChronoSpatialAnalysis; // New field for 4D Maps
+  bio_theology?: BioTheology; 
+  etymology?: EtymologyAnalysis; 
+  chrono_spatial?: ChronoSpatialAnalysis; 
   peer_review?: PeerReview; 
-  council_session?: CouncilSession; // New field for The Council
+  council_session?: CouncilSession; 
+  apologetics?: ApologeticsData; // New field for Cohere
 }
 
 export interface ChatMessage {
