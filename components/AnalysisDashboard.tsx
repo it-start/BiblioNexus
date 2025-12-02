@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { AnalysisData, Relationship, AppLanguage, CouncilSession } from '../types';
+import { AnalysisData, Relationship, AppLanguage, CouncilSession, CrossReference } from '../types';
 import { ThemeChart } from './Visualizations/ThemeChart';
 import { NetworkGraph } from './Visualizations/NetworkGraph';
 import { DistributionChart } from './Visualizations/DistributionChart';
@@ -17,7 +17,7 @@ import { PeerReviewPanel } from './PeerReviewPanel';
 import { ApologeticsPanel } from './ApologeticsPanel';
 import { TheCouncil } from './TheCouncil';
 import { conveneCouncil } from '../services/geminiService';
-import { BookOpen, Share2, Activity, Info, Anchor, FileText, Network, History, Gavel, Loader2 } from 'lucide-react';
+import { BookOpen, Share2, Activity, Info, Anchor, FileText, Network, History, Gavel, Loader2, Sparkles } from 'lucide-react';
 
 interface AnalysisDashboardProps {
   data: AnalysisData;
@@ -27,6 +27,7 @@ interface AnalysisDashboardProps {
 export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, language = AppLanguage.ENGLISH }) => {
   const [councilSession, setCouncilSession] = useState<CouncilSession | null>(null);
   const [loadingCouncil, setLoadingCouncil] = useState(false);
+  const [selectedArc, setSelectedArc] = useState<{ref1: string, ref2: string} | null>(null);
   
   const t = {
     summary: language === AppLanguage.RUSSIAN ? "Богословское резюме" : "Theological Summary",
@@ -46,7 +47,9 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
     relevance: language === AppLanguage.RUSSIAN ? "Значение" : "Relevance",
     convene: language === AppLanguage.RUSSIAN ? "Созвать Совет Трех" : "Convene The Council of Three",
     convening: language === AppLanguage.RUSSIAN ? "Совет собирается..." : "Convening Council...",
-    councilDesc: language === AppLanguage.RUSSIAN ? "Запустите дебаты в реальном времени между Археологом, Богословом и Мистиком для получения синтезированной мудрости." : "Initiate a real-time debate between the Archaeologist, Theologian, and Mystic for synthesized wisdom."
+    councilDesc: language === AppLanguage.RUSSIAN ? "Запустите дебаты в реальном времени между Археологом, Богословом и Мистиком для получения синтезированной мудрости." : "Initiate a real-time debate between the Archaeologist, Theologian, and Mystic for synthesized wisdom.",
+    canonResonance: language === AppLanguage.RUSSIAN ? "Канонический Резонанс" : "Canonical Resonance",
+    canonDesc: language === AppLanguage.RUSSIAN ? "Макро-траектории пророчеств и микро-паттерны текста." : "Macro prophetic trajectories meeting micro textual patterns."
   };
 
   const handleConveneCouncil = async () => {
@@ -59,6 +62,14 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
       console.error(e);
     } finally {
       setLoadingCouncil(false);
+    }
+  };
+
+  const handleArcSelect = (ref: CrossReference | null) => {
+    if (ref) {
+        setSelectedArc({ ref1: ref.primary_verse, ref2: ref.related_verse });
+    } else {
+        setSelectedArc(null);
     }
   };
 
@@ -137,6 +148,38 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         </p>
       </div>
 
+      {/* Canonical Resonance Section (Unified Arcs + Pattern Clusters) */}
+      {(data.cross_references?.length > 0 || data.citations?.length > 0) && (
+        <div className="bg-stone-100/50 p-6 rounded-2xl border border-stone-200">
+            <div className="flex items-center gap-2 mb-4 text-indigo-900">
+                <Sparkles className="w-6 h-6" />
+                <div>
+                    <h3 className="text-xl font-serif font-bold">{t.canonResonance}</h3>
+                    <p className="text-xs text-stone-500 font-mono">{t.canonDesc}</p>
+                </div>
+            </div>
+            
+            <div className="space-y-8">
+                 {/* Prophetic Arcs (The Macro) */}
+                {data.cross_references && data.cross_references.length > 0 && (
+                    <PropheticArcs 
+                      data={data.cross_references} 
+                      language={language} 
+                      onSelectArc={handleArcSelect}
+                    />
+                )}
+
+                {/* Pattern Cluster Analysis (The Micro) */}
+                <PatternCluster 
+                    citations={data.citations} 
+                    crossReferences={data.cross_references} 
+                    language={language} 
+                    filterRefs={selectedArc}
+                />
+            </div>
+        </div>
+      )}
+
       {/* Etymological Spectrometry */}
       {data.etymology && (
         <div className="my-8">
@@ -162,13 +205,6 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         </div>
       )}
 
-      {/* Prophetic Arcs */}
-      {data.cross_references && data.cross_references.length > 0 && (
-        <div className="my-8">
-          <PropheticArcs data={data.cross_references} language={language} />
-        </div>
-      )}
-
       {/* Bio-Genetic Sequencer */}
       {data.bio_theology && (
         <div className="my-8">
@@ -187,15 +223,6 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
       {data.locations && data.locations.length > 0 && (
         <BiblicalMap locations={data.locations} language={language} />
       )}
-
-      {/* Pattern Cluster Analysis */}
-      <div className="my-8">
-         <PatternCluster 
-           citations={data.citations} 
-           crossReferences={data.cross_references} 
-           language={language} 
-         />
-      </div>
 
       {/* Scripture DNA Visualization */}
       {data.cross_references && data.cross_references.length > 0 && (

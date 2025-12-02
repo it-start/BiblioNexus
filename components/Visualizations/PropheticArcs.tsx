@@ -6,6 +6,7 @@ import { Sparkles, ArrowRight, MousePointer2 } from 'lucide-react';
 interface PropheticArcsProps {
   data: CrossReference[];
   language?: AppLanguage;
+  onSelectArc?: (ref: CrossReference | null) => void;
 }
 
 // Canonical order of Bible books with Chapter counts for precision mapping
@@ -80,14 +81,16 @@ const BIBLE_BOOKS = [
   { en: "Revelation", ru: "Откровение", div: "Prophecy", chapters: 22 }
 ];
 
-export const PropheticArcs: React.FC<PropheticArcsProps> = ({ data, language = AppLanguage.ENGLISH }) => {
+export const PropheticArcs: React.FC<PropheticArcsProps> = ({ data, language = AppLanguage.ENGLISH, onSelectArc }) => {
   const [hoveredArc, setHoveredArc] = useState<number | null>(null);
+  const [selectedArcIndex, setSelectedArcIndex] = useState<number | null>(null);
 
   const t = {
     title: language === AppLanguage.RUSSIAN ? "Пророческая траектория (Deep:3)" : "Prophetic Trajectory (Deep:3)",
     subtitle: language === AppLanguage.RUSSIAN ? "Божественные дуги: точное отображение связей" : "Divine arcs: precision cross-reference mapping",
     ot: "OT",
-    nt: "NT"
+    nt: "NT",
+    instruction: language === AppLanguage.RUSSIAN ? "Нажмите на дугу, чтобы увидеть общие слова" : "Click an arc to reveal shared patterns"
   };
 
   // Helper to extract Book Name and Chapter Number
@@ -103,15 +106,6 @@ export const PropheticArcs: React.FC<PropheticArcsProps> = ({ data, language = A
     }
     // Fallback if no chapter found (entire book ref)
     return { book: ref.trim(), chapter: 1 };
-  };
-
-  const getBookInfo = (bookName: string) => {
-    return BIBLE_BOOKS.find(b => 
-      b.en.toLowerCase() === bookName.toLowerCase() || 
-      b.ru.toLowerCase() === bookName.toLowerCase() ||
-      bookName.toLowerCase().includes(b.en.toLowerCase()) ||
-      bookName.toLowerCase().includes(b.ru.toLowerCase())
-    );
   };
 
   const getPrecisePosition = (ref: string): number => {
@@ -147,6 +141,16 @@ export const PropheticArcs: React.FC<PropheticArcsProps> = ({ data, language = A
     }).filter(a => Math.abs(a.startPos - a.endPos) > 0.1); // Filter out extremely short intra-book links for this global view
   }, [data]);
 
+  const handleArcClick = (index: number) => {
+    if (selectedArcIndex === index) {
+        setSelectedArcIndex(null);
+        if (onSelectArc) onSelectArc(null);
+    } else {
+        setSelectedArcIndex(index);
+        if (onSelectArc) onSelectArc(arcs[index]);
+    }
+  };
+
   // Dimensions
   const width = 1000;
   const height = 450;
@@ -165,15 +169,20 @@ export const PropheticArcs: React.FC<PropheticArcsProps> = ({ data, language = A
       <div className="absolute inset-0 bg-[linear-gradient(rgba(17,24,39,0)_1px,transparent_1px),linear-gradient(90deg,rgba(17,24,39,0)_1px,transparent_1px)] bg-[size:40px_40px] opacity-10 pointer-events-none"></div>
 
       {/* Header */}
-      <div className="p-6 border-b border-indigo-900/30 flex items-center gap-3 bg-[#0b0f19] relative z-10">
-        <div className="bg-indigo-500/10 p-2 rounded-lg text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
-          <Sparkles size={24} />
+      <div className="p-6 border-b border-indigo-900/30 flex items-center justify-between bg-[#0b0f19] relative z-10">
+        <div className="flex items-center gap-3">
+            <div className="bg-indigo-500/10 p-2 rounded-lg text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+            <Sparkles size={24} />
+            </div>
+            <div>
+            <h3 className="text-xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-100 to-indigo-200">
+                {t.title}
+            </h3>
+            <p className="text-sm text-indigo-300/60 font-light">{t.subtitle}</p>
+            </div>
         </div>
-        <div>
-          <h3 className="text-xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-100 to-indigo-200">
-            {t.title}
-          </h3>
-          <p className="text-sm text-indigo-300/60 font-light">{t.subtitle}</p>
+        <div className="hidden md:flex text-[10px] text-indigo-400/50 uppercase tracking-widest border border-indigo-900/30 px-3 py-1 rounded-full items-center gap-2">
+            <MousePointer2 size={12} /> {t.instruction}
         </div>
       </div>
 
@@ -238,12 +247,14 @@ export const PropheticArcs: React.FC<PropheticArcsProps> = ({ data, language = A
                 const controlY = y - arcHeight * 1.8; // Control point pulls curve up
 
                 const isHovered = hoveredArc === i;
-                const opacity = hoveredArc === null ? 0.6 : (isHovered ? 1 : 0.1);
+                const isSelected = selectedArcIndex === i;
+                const opacity = (hoveredArc === null && selectedArcIndex === null) ? 0.6 : ((isHovered || isSelected) ? 1 : 0.1);
 
                 return (
                   <g key={i} 
                      onMouseEnter={() => setHoveredArc(i)}
                      onMouseLeave={() => setHoveredArc(null)}
+                     onClick={() => handleArcClick(i)}
                      className="cursor-pointer transition-all duration-300"
                   >
                     {/* Hitbox Path (Invisible, thicker) */}
@@ -251,25 +262,25 @@ export const PropheticArcs: React.FC<PropheticArcsProps> = ({ data, language = A
                       d={`M ${x1} ${y} Q ${(x1 + x2) / 2} ${controlY} ${x2} ${y}`}
                       fill="none"
                       stroke="transparent"
-                      strokeWidth="15"
+                      strokeWidth="20"
                     />
 
                     {/* Visible Arc */}
                     <path
                       d={`M ${x1} ${y} Q ${(x1 + x2) / 2} ${controlY} ${x2} ${y}`}
                       fill="none"
-                      stroke={isHovered ? "#fbbf24" : "url(#arcGradient)"}
-                      strokeWidth={isHovered ? 3 : 1.5}
+                      stroke={(isHovered || isSelected) ? "#fbbf24" : "url(#arcGradient)"}
+                      strokeWidth={(isHovered || isSelected) ? 3 : 1.5}
                       strokeOpacity={opacity}
-                      filter={isHovered ? "url(#glow)" : ""}
+                      filter={(isHovered || isSelected) ? "url(#glow)" : ""}
                       strokeLinecap="round"
                     />
                     
                     {/* Precise Start/End Dots */}
-                    {(isHovered || hoveredArc === null) && (
+                    {(isHovered || isSelected || (hoveredArc === null && selectedArcIndex === null)) && (
                       <>
-                        <circle cx={x1} cy={y} r={isHovered ? 4 : 2} fill="#fbbf24" opacity={opacity} />
-                        <circle cx={x2} cy={y} r={isHovered ? 4 : 2} fill="#6366f1" opacity={opacity} />
+                        <circle cx={x1} cy={y} r={(isHovered || isSelected) ? 4 : 2} fill="#fbbf24" opacity={opacity} />
+                        <circle cx={x2} cy={y} r={(isHovered || isSelected) ? 4 : 2} fill="#6366f1" opacity={opacity} />
                       </>
                     )}
                   </g>
@@ -296,16 +307,8 @@ export const PropheticArcs: React.FC<PropheticArcsProps> = ({ data, language = A
           </div>
         )}
 
-        {/* Empty State Hint */}
-        {hoveredArc === null && (
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none text-indigo-500/20 flex flex-col items-center gap-2">
-            <MousePointer2 size={32} />
-            <span className="text-xs uppercase tracking-widest">Hover arcs to reveal connections</span>
-          </div>
-        )}
-
         <div className="absolute bottom-2 right-4 text-[10px] text-slate-600 italic">
-          *Canonical Axis (Gen -&gt; Rev) • Precise Chapter Mapping
+          *Canonical Axis (Gen -> Rev) • Precise Chapter Mapping
         </div>
       </div>
     </div>

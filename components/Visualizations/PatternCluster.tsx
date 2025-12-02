@@ -1,12 +1,13 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Citation, CrossReference, AppLanguage } from '../../types';
-import { ScanSearch, GitCommit, Copy, Layers } from 'lucide-react';
+import { ScanSearch, GitCommit, Copy, Layers, Link as LinkIcon, X } from 'lucide-react';
 
 interface PatternClusterProps {
   citations: Citation[];
   crossReferences: CrossReference[];
   language?: AppLanguage;
+  filterRefs?: { ref1: string, ref2: string } | null;
 }
 
 interface Cluster {
@@ -16,7 +17,7 @@ interface Cluster {
   sources: Array<{ ref: string; fullText: string }>;
 }
 
-export const PatternCluster: React.FC<PatternClusterProps> = ({ citations, crossReferences, language = AppLanguage.ENGLISH }) => {
+export const PatternCluster: React.FC<PatternClusterProps> = ({ citations, crossReferences, language = AppLanguage.ENGLISH, filterRefs }) => {
   const [minWords, setMinWords] = useState(2);
   const [selectedCluster, setSelectedCluster] = useState<string | null>(null);
 
@@ -29,11 +30,16 @@ export const PatternCluster: React.FC<PatternClusterProps> = ({ citations, cross
     lengthFilter: language === AppLanguage.RUSSIAN ? "Длина фразы" : "Phrase Length",
     noClusters: language === AppLanguage.RUSSIAN ? "Повторяющихся паттернов не найдено." : "No repetitive patterns found.",
     words: language === AppLanguage.RUSSIAN ? "слова" : "words",
-    occurrences: language === AppLanguage.RUSSIAN ? "вхождений" : "occurrences"
+    occurrences: language === AppLanguage.RUSSIAN ? "вхождений" : "occurrences",
+    filteredView: language === AppLanguage.RUSSIAN ? "Фильтр: Соединение дуг" : "Filter: Arc Connection",
+    clearFilter: language === AppLanguage.RUSSIAN ? "Очистить" : "Clear"
   };
 
   // Logic: N-Gram extraction
   const clusters = useMemo(() => {
+    // If filtering by refs, we only care about text from those specific references or the whole set
+    const relevantRefs = new Set(filterRefs ? [filterRefs.ref1, filterRefs.ref2] : []);
+
     const allTexts = [
       ...citations.map(c => ({ ref: `${c.book} ${c.chapter}:${c.verse_start}`, text: c.text })),
       ...crossReferences.map(c => ({ ref: c.primary_verse, text: c.primary_text })),
@@ -83,12 +89,19 @@ export const PatternCluster: React.FC<PatternClusterProps> = ({ citations, cross
     const result: Cluster[] = [];
     phraseMap.forEach((sources, phrase) => {
       if (sources.length > 1) {
-        result.push({
-          phrase,
-          count: sources.length,
-          length: phrase.split(' ').length,
-          sources
-        });
+        // If external filter is active, this cluster MUST contain source text from BOTH refs
+        // This is tricky because refs might be fuzzy (Book Ch:V vs Book Ch:V-V)
+        // Simple check: does the cluster appear in texts associated with the filtered refs?
+        if (filterRefs) {
+            const hasRef1 = sources.some(s => s.ref.includes(filterRefs.ref1) || filterRefs.ref1.includes(s.ref));
+            const hasRef2 = sources.some(s => s.ref.includes(filterRefs.ref2) || filterRefs.ref2.includes(s.ref));
+            
+            if (hasRef1 && hasRef2) {
+                result.push({ phrase, count: sources.length, length: phrase.split(' ').length, sources });
+            }
+        } else {
+            result.push({ phrase, count: sources.length, length: phrase.split(' ').length, sources });
+        }
       }
     });
 
@@ -97,7 +110,6 @@ export const PatternCluster: React.FC<PatternClusterProps> = ({ citations, cross
     result.sort((a, b) => b.length - a.length);
     
     const finalClusters: Cluster[] = [];
-    const claimedPhrases = new Set<string>();
 
     for (const cluster of result) {
        // Check if this phrase is part of a larger phrase already claimed with similar count
@@ -115,19 +127,35 @@ export const PatternCluster: React.FC<PatternClusterProps> = ({ citations, cross
 
     // Final sort: Frequency then Length
     return finalClusters.sort((a, b) => b.count - a.count || b.length - a.length).slice(0, 15); // Top 15
-  }, [citations, crossReferences, minWords]);
+  }, [citations, crossReferences, minWords, filterRefs]);
 
-  if (clusters.length === 0) return null;
+  // Auto-select first cluster if filtering logic found something
+  useEffect(() => {
+    if (filterRefs && clusters.length > 0) {
+        setSelectedCluster(clusters[0].phrase);
+    } else if (filterRefs && clusters.length === 0) {
+        setSelectedCluster(null);
+    }
+  }, [filterRefs, clusters]);
+
+  if (clusters.length === 0 && !filterRefs) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+    <div className={`bg-white rounded-xl shadow-sm border overflow-hidden transition-colors ${filterRefs ? 'border-indigo-300 ring-2 ring-indigo-100' : 'border-stone-200'}`}>
       <div className="bg-stone-50 p-6 border-b border-stone-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="bg-teal-100 p-2 rounded-lg text-teal-700">
             <ScanSearch size={24} />
           </div>
           <div>
-            <h3 className="text-xl font-serif font-bold text-gray-900">{t.title}</h3>
+            <div className="flex items-center gap-2">
+                <h3 className="text-xl font-serif font-bold text-gray-900">{t.title}</h3>
+                {filterRefs && (
+                    <span className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider bg-indigo-600 text-white px-2 py-0.5 rounded-full animate-fade-in">
+                        <LinkIcon size={10} /> {t.filteredView}
+                    </span>
+                )}
+            </div>
             <p className="text-sm text-gray-500">{t.subtitle}</p>
           </div>
         </div>
@@ -154,34 +182,41 @@ export const PatternCluster: React.FC<PatternClusterProps> = ({ citations, cross
         
         {/* Cluster List */}
         <div className="col-span-1 max-h-[400px] overflow-y-auto p-2 bg-stone-50/50">
-          {clusters.map((cluster, idx) => (
-            <button
-              key={idx}
-              onClick={() => setSelectedCluster(cluster.phrase)}
-              className={`w-full text-left p-3 rounded-lg mb-1 flex items-center justify-between group transition-all ${
-                selectedCluster === cluster.phrase 
-                  ? 'bg-white shadow-md border-l-4 border-teal-500 ring-1 ring-black/5' 
-                  : 'hover:bg-white hover:shadow-sm border-l-4 border-transparent'
-              }`}
-            >
-              <div className="flex items-center gap-2 overflow-hidden">
-                <GitCommit size={14} className={`shrink-0 ${selectedCluster === cluster.phrase ? 'text-teal-500' : 'text-gray-300'}`} />
-                <span className={`font-medium truncate ${selectedCluster === cluster.phrase ? 'text-teal-900' : 'text-gray-700'}`}>
-                  "{cluster.phrase}"
-                </span>
-              </div>
-              <div className={`px-2 py-0.5 rounded text-xs font-bold ${
-                selectedCluster === cluster.phrase ? 'bg-teal-100 text-teal-700' : 'bg-stone-200 text-stone-500'
-              }`}>
-                {cluster.count}
-              </div>
-            </button>
-          ))}
+          {clusters.length === 0 ? (
+             <div className="p-8 text-center text-gray-400 italic text-sm">
+                {t.noClusters}
+                {filterRefs && <div className="mt-2 text-xs">Try reducing phrase length.</div>}
+             </div>
+          ) : (
+            clusters.map((cluster, idx) => (
+                <button
+                key={idx}
+                onClick={() => setSelectedCluster(cluster.phrase)}
+                className={`w-full text-left p-3 rounded-lg mb-1 flex items-center justify-between group transition-all ${
+                    selectedCluster === cluster.phrase 
+                    ? 'bg-white shadow-md border-l-4 border-teal-500 ring-1 ring-black/5' 
+                    : 'hover:bg-white hover:shadow-sm border-l-4 border-transparent'
+                }`}
+                >
+                <div className="flex items-center gap-2 overflow-hidden">
+                    <GitCommit size={14} className={`shrink-0 ${selectedCluster === cluster.phrase ? 'text-teal-500' : 'text-gray-300'}`} />
+                    <span className={`font-medium truncate ${selectedCluster === cluster.phrase ? 'text-teal-900' : 'text-gray-700'}`}>
+                    "{cluster.phrase}"
+                    </span>
+                </div>
+                <div className={`px-2 py-0.5 rounded text-xs font-bold ${
+                    selectedCluster === cluster.phrase ? 'bg-teal-100 text-teal-700' : 'bg-stone-200 text-stone-500'
+                }`}>
+                    {cluster.count}
+                </div>
+                </button>
+            ))
+          )}
         </div>
 
         {/* Details Panel */}
         <div className="col-span-2 p-6 bg-white min-h-[300px]">
-          {selectedCluster ? (
+          {selectedCluster && clusters.length > 0 ? (
             <div className="animate-fade-in">
               <div className="flex items-center gap-2 mb-6 pb-4 border-b border-stone-100">
                  <Copy size={18} className="text-teal-500" />
