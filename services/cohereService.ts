@@ -66,7 +66,7 @@ export class TheApologist {
           'X-Client-Name': 'BiblioNexus'
         },
         body: JSON.stringify({
-          model: "command-r-plus",
+          model: "command-r-03-2025",
           message: template.task(topic, analysis.summary),
           preamble: template.system,
           temperature: 0.3,
