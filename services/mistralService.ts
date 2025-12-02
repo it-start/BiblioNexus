@@ -224,6 +224,30 @@ export class TheologicalGardener {
       return null;
 
     } catch (error) {
+       // Check for Service Tier Capacity Exceeded (Code 3505) or other transient errors
+       const errString = String(error);
+       if (errString.includes("capacity exceeded") || errString.includes("3505")) {
+         console.warn("🌿 Mistral Capacity Exceeded. Pruning branches (Fallback to medium model)...");
+         
+         // Fallback to smaller model
+         try {
+           const fallbackResponse = await this.client.chat.complete({
+             model: 'mistral-medium-latest', // Updated fallback as requested
+             messages: messages as any,
+             tools: tools,
+             toolChoice: 'auto'
+           });
+           
+           const fallbackToolCall = fallbackResponse.choices?.[0]?.message?.toolCalls?.[0];
+           if (fallbackToolCall) {
+              const args = JSON.parse(fallbackToolCall.function.arguments as string);
+              return this.formatReview(args, "Mistral Medium (Fallback)");
+           }
+         } catch (fallbackError) {
+            console.error("🔥 Garden blighted completely (Fallback failed).", fallbackError);
+         }
+       }
+       
       console.error("🔥 Blight detected in the garden (Mistral Error):", error);
       return null;
     }

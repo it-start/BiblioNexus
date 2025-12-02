@@ -17,7 +17,7 @@ import { PeerReviewPanel } from './PeerReviewPanel';
 import { ApologeticsPanel } from './ApologeticsPanel';
 import { TheCouncil } from './TheCouncil';
 import { conveneCouncil } from '../services/geminiService';
-import { BookOpen, Share2, Activity, Info, Anchor, FileText, Network, History, Gavel, Loader2, Sparkles } from 'lucide-react';
+import { BookOpen, Share2, Activity, Info, Anchor, FileText, Network, History, Gavel, Loader2, Sparkles, Shield } from 'lucide-react';
 
 interface AnalysisDashboardProps {
   data: AnalysisData;
@@ -49,7 +49,8 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
     convening: language === AppLanguage.RUSSIAN ? "Совет собирается..." : "Convening Council...",
     councilDesc: language === AppLanguage.RUSSIAN ? "Запустите дебаты в реальном времени между Археологом, Богословом и Мистиком для получения синтезированной мудрости." : "Initiate a real-time debate between the Archaeologist, Theologian, and Mystic for synthesized wisdom.",
     canonResonance: language === AppLanguage.RUSSIAN ? "Канонический Резонанс" : "Canonical Resonance",
-    canonDesc: language === AppLanguage.RUSSIAN ? "Макро-траектории пророчеств и микро-паттерны текста." : "Macro prophetic trajectories meeting micro textual patterns."
+    canonDesc: language === AppLanguage.RUSSIAN ? "Макро-траектории пророчеств и микро-паттерны текста." : "Macro prophetic trajectories meeting micro textual patterns.",
+    apologeticsLoading: language === AppLanguage.RUSSIAN ? "Апологет формулирует защиту..." : "The Apologist is formulating a defense..."
   };
 
   const handleConveneCouncil = async () => {
@@ -133,11 +134,16 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         </div>
       )}
 
-      {/* Apologetics Panel (Cohere) */}
-      {data.apologetics && (
+      {/* Apologetics Panel (Cohere) - Show loading state or result */}
+      {data.apologetics ? (
         <div className="my-8">
           <ApologeticsPanel data={data.apologetics} language={language} />
         </div>
+      ) : (
+        // Optional: Show placeholder if we know we are fetching but it's not here yet
+        // In App.tsx we set reviewLoading, but we don't pass it down. 
+        // For now, we rely on the subtle "Reviewing..." badge in the header.
+        null
       )}
 
       {/* Deep Insight */}
@@ -150,7 +156,7 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
 
       {/* Canonical Resonance Section (Unified Arcs + Pattern Clusters) */}
       {(data.cross_references?.length > 0 || data.citations?.length > 0) && (
-        <div className="bg-stone-100/50 p-6 rounded-2xl border border-stone-200">
+        <div className="bg-stone-100/50 p-6 rounded-2xl border border-stone-200 shadow-inner">
             <div className="flex items-center gap-2 mb-4 text-indigo-900">
                 <Sparkles className="w-6 h-6" />
                 <div>
@@ -224,9 +230,13 @@ export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, lang
         <BiblicalMap locations={data.locations} language={language} />
       )}
 
-      {/* Scripture DNA Visualization */}
+      {/* Scripture DNA Visualization (Legacy View) */}
+      {/* Keeping distinct from Resonance Deck for deep comparison */}
       {data.cross_references && data.cross_references.length > 0 && (
-        <ScriptureDNA references={data.cross_references} language={language} />
+        <div className="mt-8">
+            <h4 className="font-serif font-bold text-gray-500 text-sm uppercase tracking-widest mb-4 ml-2">Legacy Text Comparison</h4>
+            <ScriptureDNA references={data.cross_references} language={language} />
+        </div>
       )}
 
       {/* Scripture Distribution */}

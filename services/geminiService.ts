@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { AppLanguage, AnalysisData, ImageSize, CouncilSession } from "../types";
 
@@ -516,6 +515,7 @@ export const generateBiblicalImage = async (prompt: string, size: ImageSize, lan
   } catch (error) {
     console.warn("Image generation failed, attempting fallback", error);
     try {
+        // Fallback to flash-image (Nano Banana) which doesn't support imageSize
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash-image', 
             contents: { parts: [textContent] },
