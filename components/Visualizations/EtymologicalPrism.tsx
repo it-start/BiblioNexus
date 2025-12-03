@@ -3,11 +3,23 @@ import React, { useState } from 'react';
 import { EtymologyAnalysis, AppLanguage } from '../../types';
 import { Sparkles, BookOpen, Search, Languages } from 'lucide-react';
 
+/**
+ * Props for the EtymologicalPrism component.
+ * @property data - The etymology analysis data to be visualized.
+ * @property language - The language to be used for the component's text.
+ */
 interface EtymologicalPrismProps {
   data: EtymologyAnalysis;
   language?: AppLanguage;
 }
 
+/**
+ * A component that visualizes etymological analysis as a prism, breaking down a word into its roots.
+ *
+ * @param data - The etymology analysis data to be visualized.
+ * @param language - The language to be used for the component's text.
+ * @returns A React component that renders the etymological prism.
+ */
 export const EtymologicalPrism: React.FC<EtymologicalPrismProps> = ({ data, language = AppLanguage.ENGLISH }) => {
   const [hoveredRoot, setHoveredRoot] = useState<number | null>(null);
 

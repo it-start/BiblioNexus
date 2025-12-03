@@ -3,11 +3,23 @@ import { Image, Loader2, Download, Maximize2, Quote } from 'lucide-react';
 import { generateBiblicalImage } from '../services/geminiService';
 import { ImageSize, Citation, AppLanguage } from '../types';
 
+/**
+ * Props for the ImageGenerator component.
+ * @property citations - An optional array of citations to be used for quick selection.
+ * @property language - The language to be used for the component's text.
+ */
 interface ImageGeneratorProps {
   citations?: Citation[];
   language?: AppLanguage;
 }
 
+/**
+ * A component that allows users to generate biblical scenes as images.
+ *
+ * @param citations - An optional array of citations to be used for quick selection.
+ * @param language - The language to be used for the component's text.
+ * @returns A React component that renders the image generator.
+ */
 export const ImageGenerator: React.FC<ImageGeneratorProps> = ({ citations = [], language = AppLanguage.ENGLISH }) => {
   const [prompt, setPrompt] = useState('');
   const [size, setSize] = useState<ImageSize>('1K');

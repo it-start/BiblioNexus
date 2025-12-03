@@ -3,11 +3,23 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CouncilSession, DebateTurn, AppLanguage, CouncilRole } from '../types';
 import { Scroll, Shovel, Scale, Flame, Gavel, User } from 'lucide-react';
 
+/**
+ * Props for TheCouncil component.
+ * @property session - The council session data to be displayed.
+ * @property language - The language to be used for the component's text.
+ */
 interface TheCouncilProps {
   session: CouncilSession;
   language?: AppLanguage;
 }
 
+/**
+ * A component that displays a simulated debate between three AI personas.
+ *
+ * @param session - The council session data to be displayed.
+ * @param language - The language to be used for the component's text.
+ * @returns A React component that renders the council debate.
+ */
 export const TheCouncil: React.FC<TheCouncilProps> = ({ session, language = AppLanguage.ENGLISH }) => {
   const [displayedTurns, setDisplayedTurns] = useState<DebateTurn[]>([]);
   const [showVerdict, setShowVerdict] = useState(false);

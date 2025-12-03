@@ -40,9 +40,21 @@ const COHERE_PROMPTS = {
   }
 };
 
+/**
+ * --- The Apologist (The King) ---
+ *
+ * Powered by Cohere Command R+.
+ * This class is responsible for defending the faith, bridging ancient text to modern culture,
+ * and handling "hard questions" (Apologetics). It uses the Cohere V2 API via fetch for
+ * browser compatibility.
+ */
 export class TheApologist {
   private apiKey: string | undefined;
 
+  /**
+   * Initializes a new instance of the TheApologist class.
+   * It retrieves the Cohere API key from environment variables.
+   */
   constructor() {
     // Check both standard VITE_ prefix and standard NODE env vars
     this.apiKey = process.env.VITE_COHERE_API_KEY || process.env.COHERE_API_KEY;
@@ -52,6 +64,14 @@ export class TheApologist {
     }
   }
 
+  /**
+   * Generates a defense for a given topic using the Cohere API.
+   *
+   * @param topic - The topic to generate a defense for.
+   * @param analysis - The analysis data related to the topic.
+   * @param language - The language to be used for the generation.
+   * @returns A promise that resolves to the apologetics data, or null if an error occurs.
+   */
   public async generateDefense(topic: string, analysis: AnalysisData, language: AppLanguage): Promise<ApologeticsData | null> {
     if (!this.apiKey) return null;
 
@@ -135,6 +155,14 @@ export class TheApologist {
     }
   }
 
+  /**
+   * Provides a fallback defense mechanism in case the primary generation fails.
+   *
+   * @param topic - The topic to generate a defense for.
+   * @param analysis - The analysis data related to the topic.
+   * @param language - The language for the generation.
+   * @returns A promise resolving to the apologetics data, or null on error.
+   */
   private async fallbackDefense(topic: string, analysis: AnalysisData, language: AppLanguage): Promise<ApologeticsData | null> {
     if (!this.apiKey) return null;
     const template = COHERE_PROMPTS[language] || COHERE_PROMPTS[AppLanguage.ENGLISH];
@@ -186,6 +214,14 @@ export class TheApologist {
   }
 }
 
+/**
+ * Generates apologetics data for a given topic using the Cohere API.
+ *
+ * @param topic - The topic to generate apologetics for.
+ * @param currentAnalysis - The current analysis data.
+ * @param language - The language to be used for the generation.
+ * @returns A promise that resolves to the apologetics data, or null if an error occurs.
+ */
 export const getCohereDefense = async (topic: string, currentAnalysis: AnalysisData, language: AppLanguage): Promise<ApologeticsData | null> => {
   const apologist = new TheApologist();
   return apologist.generateDefense(topic, currentAnalysis, language);

@@ -3,11 +3,23 @@ import * as L from 'leaflet';
 import { BiblicalLocation, AppLanguage } from '../../types';
 import { Layers, MapPin, Users, Lightbulb } from 'lucide-react';
 
+/**
+ * Props for the BiblicalMap component.
+ * @property locations - An array of biblical locations to be displayed on the map.
+ * @property language - The language to be used for the component's text.
+ */
 interface BiblicalMapProps {
   locations: BiblicalLocation[];
   language?: AppLanguage;
 }
 
+/**
+ * A component that displays biblical locations on an interactive map.
+ *
+ * @param locations - An array of biblical locations to be displayed on the map.
+ * @param language - The language to be used for the component's text.
+ * @returns A React component that renders an interactive map of biblical locations.
+ */
 export const BiblicalMap: React.FC<BiblicalMapProps> = ({ locations, language = AppLanguage.ENGLISH }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);

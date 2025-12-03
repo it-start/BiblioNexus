@@ -2,11 +2,23 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Citation, AppLanguage } from '../../types';
 
+/**
+ * Props for the DistributionChart component.
+ * @property citations - An array of citations to be visualized.
+ * @property language - The language to be used for the component's text.
+ */
 interface DistributionChartProps {
   citations: Citation[];
   language?: AppLanguage;
 }
 
+/**
+ * A component that displays a bar chart of the distribution of citations by book.
+ *
+ * @param citations - An array of citations to be visualized.
+ * @param language - The language to be used for the component's text.
+ * @returns A React component that renders a bar chart.
+ */
 export const DistributionChart: React.FC<DistributionChartProps> = ({ citations, language = AppLanguage.ENGLISH }) => {
   const t = {
     verses: language === AppLanguage.RUSSIAN ? "Цитируемых стихов" : "Verses Cited"

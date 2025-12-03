@@ -3,11 +3,23 @@ import React from 'react';
 import { ApologeticsData, AppLanguage } from '../types';
 import { Shield, Radio, MessageCircleQuestion, Zap, BookCheck } from 'lucide-react';
 
+/**
+ * Props for the ApologeticsPanel component.
+ * @property data - The apologetics data to be displayed.
+ * @property language - The language to be used for the component's text.
+ */
 interface ApologeticsPanelProps {
   data: ApologeticsData;
   language?: AppLanguage;
 }
 
+/**
+ * A component that displays apologetics data, including cultural context, hard questions, and an ethical imperative.
+ *
+ * @param data - The apologetics data to be displayed.
+ * @param language - The language to be used for the component's text.
+ * @returns A React component that renders the apologetics panel.
+ */
 export const ApologeticsPanel: React.FC<ApologeticsPanelProps> = ({ data, language = AppLanguage.ENGLISH }) => {
   const t = {
     title: language === AppLanguage.RUSSIAN ? "Апологетика и Культура" : "Apologetics & Culture",

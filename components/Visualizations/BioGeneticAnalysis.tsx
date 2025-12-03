@@ -3,11 +3,23 @@ import React, { useState } from 'react';
 import { BioTheology, AppLanguage } from '../../types';
 import { Dna, Activity, FlaskConical, Microscope } from 'lucide-react';
 
+/**
+ * Props for the BioGeneticAnalysis component.
+ * @property data - The bio-theological data to be visualized.
+ * @property language - The language to be used for the component's text.
+ */
 interface BioGeneticAnalysisProps {
   data: BioTheology;
   language?: AppLanguage;
 }
 
+/**
+ * A component that visualizes bio-theological data using a DNA/RNA metaphor.
+ *
+ * @param data - The bio-theological data to be visualized.
+ * @param language - The language to be used for the component's text.
+ * @returns A React component that renders the bio-genetic analysis.
+ */
 export const BioGeneticAnalysis: React.FC<BioGeneticAnalysisProps> = ({ data, language = AppLanguage.ENGLISH }) => {
   const [selectedCodon, setSelectedCodon] = useState<number | null>(null);
 

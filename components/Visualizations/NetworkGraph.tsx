@@ -3,6 +3,13 @@ import * as d3 from 'd3';
 import { Relationship, AppLanguage, KeyFigure } from '../../types';
 import { Filter, SlidersHorizontal, RefreshCcw, X, User, ArrowRight } from 'lucide-react';
 
+/**
+ * Props for the NetworkGraph component.
+ * @property relationships - An array of relationships to be visualized.
+ * @property height - The height of the graph.
+ * @property language - The language to be used for the component's text.
+ * @property nodeDetails - An array of key figures with details.
+ */
 interface NetworkGraphProps {
   relationships: Relationship[];
   height?: number;
@@ -10,6 +17,15 @@ interface NetworkGraphProps {
   nodeDetails?: KeyFigure[];
 }
 
+/**
+ * A component that visualizes relationships as a network graph.
+ *
+ * @param relationships - An array of relationships to be visualized.
+ * @param height - The height of the graph.
+ * @param language - The language to be used for the component's text.
+ * @param nodeDetails - An array of key figures with details.
+ * @returns A React component that renders an interactive network graph.
+ */
 export const NetworkGraph: React.FC<NetworkGraphProps> = ({ relationships, height = 400, language = AppLanguage.ENGLISH, nodeDetails = [] }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);

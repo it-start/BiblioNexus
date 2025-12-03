@@ -2,10 +2,20 @@ import React, { useState, useRef } from 'react';
 import { TimelineEvent } from '../../types';
 import { ZoomIn, ZoomOut, Maximize, Move } from 'lucide-react';
 
+/**
+ * Props for the TimelineChart component.
+ * @property events - An array of timeline events to be displayed.
+ */
 interface TimelineChartProps {
   events: TimelineEvent[];
 }
 
+/**
+ * A component that displays a series of events on a pannable and zoomable timeline.
+ *
+ * @param events - An array of timeline events to be displayed.
+ * @returns A React component that renders the timeline chart.
+ */
 export const TimelineChart: React.FC<TimelineChartProps> = ({ events }) => {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });

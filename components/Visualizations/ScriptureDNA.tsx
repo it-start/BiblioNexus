@@ -2,11 +2,23 @@ import React, { useState, useMemo } from 'react';
 import { CrossReference, AppLanguage } from '../../types';
 import { GitMerge, Code, ArrowRight, Dna } from 'lucide-react';
 
+/**
+ * Props for the ScriptureDNA component.
+ * @property references - An array of cross-references to be visualized.
+ * @property language - The language to be used for the component's text.
+ */
 interface ScriptureDNAProps {
   references: CrossReference[];
   language?: AppLanguage;
 }
 
+/**
+ * A component that visualizes the "DNA" of scripture by showing shared words and phrases between cross-references.
+ *
+ * @param references - An array of cross-references to be visualized.
+ * @param language - The language to be used for the component's text.
+ * @returns A React component that renders the scripture DNA analysis.
+ */
 export const ScriptureDNA: React.FC<ScriptureDNAProps> = ({ references, language = AppLanguage.ENGLISH }) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 

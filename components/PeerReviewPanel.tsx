@@ -3,11 +3,23 @@ import React from 'react';
 import { PeerReview, AppLanguage } from '../types';
 import { ShieldCheck, AlertTriangle, CheckCircle2, PlusCircle, Scale, BrainCircuit } from 'lucide-react';
 
+/**
+ * Props for the PeerReviewPanel component.
+ * @property review - The peer review data to be displayed.
+ * @property language - The language to be used for the component's text.
+ */
 interface PeerReviewPanelProps {
   review: PeerReview;
   language?: AppLanguage;
 }
 
+/**
+ * A component that displays the results of a peer review.
+ *
+ * @param review - The peer review data to be displayed.
+ * @param language - The language to be used for the component's text.
+ * @returns A React component that renders the peer review panel.
+ */
 export const PeerReviewPanel: React.FC<PeerReviewPanelProps> = ({ review, language = AppLanguage.ENGLISH }) => {
   const t = {
     title: language === AppLanguage.RUSSIAN ? "Совет ИИ: Рецензия (Поиск истины)" : "AI Council: Peer Review (Truth Finding)",

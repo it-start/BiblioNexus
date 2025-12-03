@@ -83,11 +83,30 @@ Truth is established through debate. We utilize a **Multi-Agent System**:
 
 ## 🧩 Key Components
 
-*   **`TheCouncil.tsx`**: Renders the script-like debate interface.
-*   **`PropheticArcs.tsx`**: Visualizes cross-references as trajectories from OT (Promise) to NT (Fulfillment).
-*   **`EtymologicalPrism.tsx`**: SVG-based refraction visualization of root words.
-*   **`ChronoMap.tsx`**: Leaflet wrapper with time-slider logic for historical layers.
-*   **`PatternCluster.tsx`**: N-Gram algorithm for detecting repetitive textual DNA.
+### Core UI
+*   **`App.tsx`**: The main application component. It manages the application's state, including the search query, language, and analysis data.
+*   **`AnalysisDashboard.tsx`**: A component that displays a comprehensive dashboard of the analysis data.
+*   **`ApologeticsPanel.tsx`**: A component that displays apologetics data, including cultural context, hard questions, and an ethical imperative.
+*   **`ChatBot.tsx`**: A component that provides a chatbot interface for users to ask questions.
+*   **`ImageGenerator.tsx`**: A component that allows users to generate biblical scenes as images.
+*   **`ParallelsGuide.tsx`**: A component that displays a guide to the universal types of parallels in Scripture.
+*   **`PeerReviewPanel.tsx`**: A component that displays the results of a peer review.
+*   **`TheCouncil.tsx`**: A component that displays a simulated debate between three AI personas.
+
+### Visualizations
+*   **`BiblicalAlgorithm.tsx`**: A component that visualizes theological logic as source code.
+*   **`BiblicalMap.tsx`**: A component that displays biblical locations on an interactive map.
+*   **`BioGeneticAnalysis.tsx`**: A component that visualizes bio-theological data using a DNA/RNA metaphor.
+*   **`ChronoMap.tsx`**: A component that visualizes the evolution of a location through time.
+*   **`DistributionChart.tsx`**: A component that displays a bar chart of the distribution of citations by book.
+*   **`EtymologicalPrism.tsx`**: A component that visualizes etymological analysis as a prism, breaking down a word into its roots.
+*   **`NetworkGraph.tsx`**: A component that visualizes relationships as a network graph.
+*   **`PatternCluster.tsx`**: A component that analyzes and displays clusters of recurring phrases (N-grams) in the text.
+*   **`PropheticArcs.tsx`**: A component that visualizes prophetic arcs between different parts of the Bible.
+*   **`ScriptureDNA.tsx`**: A component that visualizes the "DNA" of scripture by showing shared words and phrases between cross-references.
+*   **`ThemeChart.tsx`**: A component that displays a bar chart of themes and their scores.
+*   **`TimelineChart.tsx`**: A component that displays a series of events on a pannable and zoomable timeline.
+
 
 ---
 
