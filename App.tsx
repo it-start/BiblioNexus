@@ -10,6 +10,12 @@ import { getMistralReview } from './services/mistralService';
 import { getCohereDefense } from './services/cohereService';
 import { AnalysisData, AppLanguage } from './types';
 
+/**
+ * The main application component.
+ * It manages the application's state, including the search query, language, and analysis data.
+ * It also handles the main search functionality and renders the UI.
+ * @returns The main application component.
+ */
 function App() {
   const [query, setQuery] = useState('');
   const [language, setLanguage] = useState<AppLanguage>(AppLanguage.ENGLISH);

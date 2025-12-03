@@ -3,6 +3,13 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Citation, CrossReference, AppLanguage } from '../../types';
 import { ScanSearch, GitCommit, Copy, Layers, Link as LinkIcon, X } from 'lucide-react';
 
+/**
+ * Props for the PatternCluster component.
+ * @property citations - An array of citations to be analyzed.
+ * @property crossReferences - An array of cross-references to be analyzed.
+ * @property language - The language to be used for the component's text.
+ * @property filterRefs - An optional filter to only show clusters that appear in both specified references.
+ */
 interface PatternClusterProps {
   citations: Citation[];
   crossReferences: CrossReference[];
@@ -10,6 +17,13 @@ interface PatternClusterProps {
   filterRefs?: { ref1: string, ref2: string } | null;
 }
 
+/**
+ * Interface for a single cluster of a recurring phrase.
+ * @property phrase - The recurring phrase.
+ * @property count - The number of times the phrase appears.
+ * @property length - The number of words in the phrase.
+ * @property sources - The sources where the phrase appears.
+ */
 interface Cluster {
   phrase: string;
   count: number;
@@ -17,6 +31,15 @@ interface Cluster {
   sources: Array<{ ref: string; fullText: string }>;
 }
 
+/**
+ * A component that analyzes and displays clusters of recurring phrases (N-grams) in the text.
+ *
+ * @param citations - An array of citations to be analyzed.
+ * @param crossReferences - An array of cross-references to be analyzed.
+ * @param language - The language to be used for the component's text.
+ * @param filterRefs - An optional filter to only show clusters that appear in both specified references.
+ * @returns A React component that renders the pattern cluster analysis.
+ */
 export const PatternCluster: React.FC<PatternClusterProps> = ({ citations, crossReferences, language = AppLanguage.ENGLISH, filterRefs }) => {
   const [minWords, setMinWords] = useState(2);
   const [selectedCluster, setSelectedCluster] = useState<string | null>(null);

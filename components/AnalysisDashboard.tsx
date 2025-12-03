@@ -19,11 +19,23 @@ import { TheCouncil } from './TheCouncil';
 import { conveneCouncil } from '../services/geminiService';
 import { BookOpen, Share2, Activity, Info, Anchor, FileText, Network, History, Gavel, Loader2, Sparkles, Shield } from 'lucide-react';
 
+/**
+ * Props for the AnalysisDashboard component.
+ * @property data - The analysis data to be displayed.
+ * @property language - The language to be used for the component's text.
+ */
 interface AnalysisDashboardProps {
   data: AnalysisData;
   language?: AppLanguage;
 }
 
+/**
+ * A component that displays a comprehensive dashboard of the analysis data.
+ *
+ * @param data - The analysis data to be displayed.
+ * @param language - The language to be used for the component's text.
+ * @returns A React component that renders the analysis dashboard.
+ */
 export const AnalysisDashboard: React.FC<AnalysisDashboardProps> = ({ data, language = AppLanguage.ENGLISH }) => {
   const [councilSession, setCouncilSession] = useState<CouncilSession | null>(null);
   const [loadingCouncil, setLoadingCouncil] = useState(false);

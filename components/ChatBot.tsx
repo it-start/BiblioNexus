@@ -3,10 +3,20 @@ import { Send, X, MessageSquare, Loader2 } from 'lucide-react';
 import { createChatSession } from '../services/geminiService';
 import { ChatMessage, AppLanguage } from '../types';
 
+/**
+ * Props for the ChatBot component.
+ * @property language - The language to be used for the chatbot's text.
+ */
 interface ChatBotProps {
   language?: AppLanguage;
 }
 
+/**
+ * A component that provides a chatbot interface for users to ask questions.
+ *
+ * @param language - The language to be used for the chatbot's text.
+ * @returns A React component that renders the chatbot.
+ */
 export const ChatBot: React.FC<ChatBotProps> = ({ language = AppLanguage.ENGLISH }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');

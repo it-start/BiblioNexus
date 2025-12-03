@@ -399,6 +399,13 @@ const GEMINI_PROMPTS = {
   }
 };
 
+/**
+ * Analyzes a biblical topic using the Google Gemini AI.
+ *
+ * @param topic - The biblical topic to analyze.
+ * @param language - The language for the analysis.
+ * @returns A promise that resolves to the analysis data.
+ */
 export const analyzeBibleTopic = async (topic: string, language: AppLanguage): Promise<AnalysisData> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
@@ -441,6 +448,13 @@ export const analyzeBibleTopic = async (topic: string, language: AppLanguage): P
   }
 };
 
+/**
+ * Convenes a council debate on a given topic using the Google Gemini AI.
+ *
+ * @param topic - The topic for the council to debate.
+ * @param language - The language to be used in the debate.
+ * @returns A promise that resolves to the council session data.
+ */
 export const conveneCouncil = async (topic: string, language: AppLanguage): Promise<CouncilSession> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -483,6 +497,14 @@ export const conveneCouncil = async (topic: string, language: AppLanguage): Prom
   }
 };
 
+/**
+ * Generates a biblical image using the Google Gemini AI.
+ *
+ * @param prompt - The prompt for the image generation.
+ * @param size - The desired size of the image.
+ * @param language - The language for the image generation prompt.
+ * @returns A promise that resolves to the base64 encoded image data.
+ */
 export const generateBiblicalImage = async (prompt: string, size: ImageSize, language: AppLanguage = AppLanguage.ENGLISH): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
@@ -537,6 +559,12 @@ export const generateBiblicalImage = async (prompt: string, size: ImageSize, lan
   }
 };
 
+/**
+ * Creates a new chat session using the Google Gemini AI.
+ *
+ * @param language - The language for the chat session.
+ * @returns A chat session object.
+ */
 export const createChatSession = (language: AppLanguage) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   

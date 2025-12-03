@@ -2,11 +2,23 @@ import React from 'react';
 import { AlgorithmicAnalysis, AppLanguage } from '../../types';
 import { Terminal, Cpu, Box, Lock, RefreshCw, GitBranch, ArrowRight } from 'lucide-react';
 
+/**
+ * Props for the BiblicalAlgorithm component.
+ * @property data - The algorithmic analysis data to be visualized.
+ * @property language - The language to be used for the component's text.
+ */
 interface BiblicalAlgorithmProps {
   data: AlgorithmicAnalysis;
   language?: AppLanguage;
 }
 
+/**
+ * A component that visualizes theological logic as source code.
+ *
+ * @param data - The algorithmic analysis data to be visualized.
+ * @param language - The language to be used for the component's text.
+ * @returns A React component that renders the algorithmic analysis.
+ */
 export const BiblicalAlgorithm: React.FC<BiblicalAlgorithmProps> = ({ data, language = AppLanguage.ENGLISH }) => {
   const t = {
     title: language === AppLanguage.RUSSIAN ? "Божественный алгоритм (Bible as Code)" : "Divine Algorithm (Bible as Code)",

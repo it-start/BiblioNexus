@@ -2,11 +2,20 @@ import React, { useState } from 'react';
 import { X, Table2, HelpCircle } from 'lucide-react';
 import { AppLanguage } from '../types';
 
+/**
+ * Props for the ParallelsGuide component.
+ * @property language - The language to be used for the component's text.
+ */
 interface ParallelsGuideProps {
   language: AppLanguage;
 }
 
-
+/**
+ * A component that displays a guide to the universal types of parallels in Scripture.
+ *
+ * @param language - The language to be used for the component's text.
+ * @returns A React component that renders the parallels guide.
+ */
 export const ParallelsGuide: React.FC<ParallelsGuideProps> = ({ language }) => {
   const [isOpen, setIsOpen] = useState(false);
 

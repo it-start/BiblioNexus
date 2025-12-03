@@ -4,11 +4,23 @@ import * as L from 'leaflet';
 import { ChronoSpatialAnalysis, AppLanguage } from '../../types';
 import { History, Layers, MapPin, ChevronRight, Clock } from 'lucide-react';
 
+/**
+ * Props for the ChronoMap component.
+ * @property data - The chrono-spatial analysis data to be visualized.
+ * @property language - The language to be used for the component's text.
+ */
 interface ChronoMapProps {
   data: ChronoSpatialAnalysis;
   language?: AppLanguage;
 }
 
+/**
+ * A component that visualizes the evolution of a location through time.
+ *
+ * @param data - The chrono-spatial analysis data to be visualized.
+ * @param language - The language to be used for the component's text.
+ * @returns A React component that renders an interactive map with a timeline.
+ */
 export const ChronoMap: React.FC<ChronoMapProps> = ({ data, language = AppLanguage.ENGLISH }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);

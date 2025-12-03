@@ -3,13 +3,21 @@ import React, { useMemo, useState } from 'react';
 import { CrossReference, AppLanguage } from '../../types';
 import { Sparkles, ArrowRight, MousePointer2 } from 'lucide-react';
 
+/**
+ * Props for the PropheticArcs component.
+ * @property data - An array of cross-references to be visualized.
+ * @property language - The language to be used for the component's text.
+ * @property onSelectArc - A callback function to be called when an arc is selected.
+ */
 interface PropheticArcsProps {
   data: CrossReference[];
   language?: AppLanguage;
   onSelectArc?: (ref: CrossReference | null) => void;
 }
 
-// Canonical order of Bible books with Chapter counts for precision mapping
+/**
+ * Canonical order of Bible books with chapter counts for precision mapping.
+ */
 const BIBLE_BOOKS = [
   // Old Testament
   { en: "Genesis", ru: "Бытие", div: "Pentateuch", chapters: 50 },
@@ -81,6 +89,14 @@ const BIBLE_BOOKS = [
   { en: "Revelation", ru: "Откровение", div: "Prophecy", chapters: 22 }
 ];
 
+/**
+ * A component that visualizes prophetic arcs between different parts of the Bible.
+ *
+ * @param data - An array of cross-references to be visualized.
+ * @param language - The language to be used for the component's text.
+ * @param onSelectArc - A callback function to be called when an arc is selected.
+ * @returns A React component that renders the prophetic arcs.
+ */
 export const PropheticArcs: React.FC<PropheticArcsProps> = ({ data, language = AppLanguage.ENGLISH, onSelectArc }) => {
   const [hoveredArc, setHoveredArc] = useState<number | null>(null);
   const [selectedArcIndex, setSelectedArcIndex] = useState<number | null>(null);

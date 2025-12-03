@@ -80,9 +80,20 @@ const REVIEW_SCHEMA = {
   cross_examination: "string (synthesis)"
 };
 
+/**
+ * --- Theological Gardener Agent ---
+ *
+ * "And the Lord God took the man, and put him into the garden of Eden to dress it and to keep it."
+ * A steward for biblical truth, monitoring doctrinal entropy (τ) and fidelity (Σ).
+ * This class uses the Mistral AI API to conduct a peer review of a theological analysis.
+ */
 export class TheologicalGardener {
   private client: Mistral;
 
+  /**
+   * Initializes a new instance of the TheologicalGardener class.
+   * It retrieves the Mistral API key from environment variables.
+   */
   constructor() {
     const apiKey = process.env.MISTRAL_API_KEY;
     if (!apiKey) {
@@ -94,6 +105,10 @@ export class TheologicalGardener {
   /**
    * Conducts a rigorous peer review of the provided analysis.
    * Uses the 'submit_theological_review' tool to structure the output.
+   * @param topic - The topic of the analysis.
+   * @param analysis - The analysis data to be reviewed.
+   * @param language - The language for the review.
+   * @returns A promise that resolves to the peer review data, or null if an error occurs.
    */
   public async conductPeerReview(topic: string, analysis: AnalysisData, language: AppLanguage): Promise<PeerReview | null> {
     if (!process.env.MISTRAL_API_KEY) return null;
@@ -253,6 +268,13 @@ export class TheologicalGardener {
     }
   }
 
+  /**
+   * Formats the peer review data.
+   *
+   * @param args - The arguments received from the Mistral API.
+   * @param agentId - The ID of the agent used for the review.
+   * @returns The formatted peer review data.
+   */
   private formatReview(args: any, agentId?: string): PeerReview {
     return {
       reviewer_name: agentId ? "Mistral Agent (Theological Gardener)" : "Mistral Large (Theological Gardener)",
@@ -266,6 +288,14 @@ export class TheologicalGardener {
   }
 }
 
+/**
+ * Gets a peer review for a given topic and analysis using the Mistral AI.
+ *
+ * @param topic - The topic of the analysis.
+ * @param currentAnalysis - The analysis data to be reviewed.
+ * @param language - The language for the review.
+ * @returns A promise that resolves to the peer review data, or null if an error occurs.
+ */
 export const getMistralReview = async (topic: string, currentAnalysis: AnalysisData, language: AppLanguage): Promise<PeerReview | null> => {
   const gardener = new TheologicalGardener();
   return gardener.conductPeerReview(topic, currentAnalysis, language);
