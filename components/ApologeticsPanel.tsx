@@ -20,6 +20,15 @@ export const ApologeticsPanel: React.FC<ApologeticsPanelProps> = ({ data, langua
 
   if (!data) return null;
 
+  // Helper to safely render content that might be passed as an object due to LLM hallucinations
+  const safeRender = (content: any) => {
+    if (typeof content === 'string') return content;
+    if (typeof content === 'object' && content !== null) {
+      return Object.values(content).join(' ');
+    }
+    return '';
+  };
+
   return (
     <div className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden shadow-sm animate-fade-in-up my-8">
       {/* Header */}
@@ -42,7 +51,7 @@ export const ApologeticsPanel: React.FC<ApologeticsPanelProps> = ({ data, langua
             <h4 className="font-bold text-sm uppercase tracking-wider">{t.zeitgeist}</h4>
           </div>
           <p className="text-gray-700 leading-relaxed font-serif text-lg">
-            {data.cultural_context}
+            {safeRender(data.cultural_context)}
           </p>
         </div>
 
@@ -53,7 +62,7 @@ export const ApologeticsPanel: React.FC<ApologeticsPanelProps> = ({ data, langua
             <h4 className="font-bold text-sm uppercase tracking-wider">{t.imperative}</h4>
           </div>
            <p className="text-gray-700 leading-relaxed font-serif text-lg italic">
-            "{data.ethical_imperative}"
+            "{safeRender(data.ethical_imperative)}"
           </p>
         </div>
 
@@ -70,19 +79,19 @@ export const ApologeticsPanel: React.FC<ApologeticsPanelProps> = ({ data, langua
                 <div className="bg-stone-100 p-4 border-b border-stone-200">
                   <h5 className="font-bold text-stone-800 text-sm leading-snug">
                     <span className="text-orange-500 mr-2">Obj:</span> 
-                    {q.claim}
+                    {safeRender(q.claim)}
                   </h5>
                 </div>
                 <div className="p-4">
                   <p className="text-stone-600 text-sm mb-4 leading-relaxed">
-                    {q.rebuttal}
+                    {safeRender(q.rebuttal)}
                   </p>
                   <div className="bg-orange-50 p-3 rounded-lg border border-orange-100 text-xs">
                      <div className="font-bold text-orange-800 mb-1 flex items-center gap-1">
                        <BookCheck size={12} /> {t.defense}
                      </div>
                      <p className="text-orange-900/80 italic">
-                       {q.scripture_defense}
+                       {safeRender(q.scripture_defense)}
                      </p>
                   </div>
                 </div>

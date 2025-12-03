@@ -18,7 +18,7 @@ const COHERE_PROMPTS = {
       Analyze the topic "${topic}" based on this theological summary: "${summary}".
       
       Generate a structured JSON response containing:
-      1. "cultural_context": How this biblical concept interfaces with modern philosophy (e.g., Post-modernism, Secularism) or current cultural struggles.
+      1. "cultural_context": How this biblical concept interfaces with modern philosophy (e.g., Post-modernism, Secularism) or current cultural struggles. (Must be a single string paragraph).
       2. "hard_questions": Identify the top 2 toughest skeptical objections/contradictions to this topic and refute them logically with scripture.
       3. "ethical_imperative": A powerful, actionable "So What?" for the modern believer.
       
@@ -31,7 +31,7 @@ const COHERE_PROMPTS = {
       Проанализируйте тему "${topic}", основываясь на этом богословском резюме: "${summary}".
       
       Сгенерируйте структурированный JSON-ответ, содержащий:
-      1. "cultural_context": Как эта библейская концепция соотносится с современной философией (например, постмодернизмом, секуляризмом) или актуальными культурными проблемами.
+      1. "cultural_context": Как эта библейская концепция соотносится с современной философией (например, постмодернизмом, секуляризмом) или актуальными культурными проблемами. (Должно быть одной строкой текста).
       2. "hard_questions": Определите 2 самых сложных скептических возражения/противоречия по этой теме и логически опровергните их с помощью Писания.
       3. "ethical_imperative": Мощный, действенный вывод ("И что теперь?") для современного верующего.
       
@@ -68,7 +68,7 @@ export class TheApologist {
           'X-Client-Name': 'BiblioNexus'
         },
         body: JSON.stringify({
-          model: 'command-a-03-2025', // V2/V1 compatible high-reasoning model
+          model: 'command-r-plus', // V2/V1 compatible high-reasoning model
           messages: [
             {
               role: 'system',
@@ -86,9 +86,6 @@ export class TheApologist {
 
       if (!response.ok) {
         const errText = await response.text();
-        // If 404, it might mean the model isn't available in V2 or the endpoint changed, 
-        // but api.cohere.com/v2/chat is standard.
-        // If 401, key is wrong.
         throw new Error(`Cohere API Error ${response.status}: ${errText}`);
       }
 
@@ -107,16 +104,29 @@ export class TheApologist {
       }
       
       // Parse JSON
+      let parsedData: any;
       try {
-          return JSON.parse(content) as ApologeticsData;
+          parsedData = JSON.parse(content);
       } catch (e) {
           // If direct parse fails, try regex extraction
           const jsonMatch = content.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
-            return JSON.parse(jsonMatch[0]) as ApologeticsData;
+            parsedData = JSON.parse(jsonMatch[0]);
+          } else {
+            throw e;
           }
-          throw e;
       }
+
+      // Sanitization: Fix React Error #31 (Objects are not valid as a React child)
+      // Sometimes Cohere returns nested objects for 'cultural_context' instead of a string
+      if (parsedData.cultural_context && typeof parsedData.cultural_context === 'object') {
+          // Flatten object values into a single string
+          parsedData.cultural_context = Object.entries(parsedData.cultural_context)
+              .map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`)
+              .join('. ');
+      }
+
+      return parsedData as ApologeticsData;
 
     } catch (error) {
       console.error("🔥 The Apologist failed (Cohere Error):", error);
@@ -137,7 +147,7 @@ export class TheApologist {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            model: 'command-a-03-2025', // Fallback to lighter model
+            model: 'command-r', // Fallback to lighter model
             messages: [
               { role: 'system', content: template.system },
               { role: 'user', content: template.task(topic, analysis.summary) }
@@ -160,7 +170,13 @@ export class TheApologist {
 
         const jsonMatch = content.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
-            return JSON.parse(jsonMatch[0]) as ApologeticsData;
+            const parsed = JSON.parse(jsonMatch[0]);
+            
+            // Apply sanitization to fallback as well
+            if (parsed.cultural_context && typeof parsed.cultural_context === 'object') {
+              parsed.cultural_context = Object.values(parsed.cultural_context).join(' ');
+            }
+            return parsed as ApologeticsData;
         }
         return null;
     } catch (e) {
