@@ -68,7 +68,7 @@ export class TheApologist {
           'X-Client-Name': 'BiblioNexus'
         },
         body: JSON.stringify({
-          model: 'command-r-plus', // V2/V1 compatible high-reasoning model
+          model: 'command-a-03-2025', // V2/V1 compatible high-reasoning model
           messages: [
             {
               role: 'system',
@@ -147,7 +147,7 @@ export class TheApologist {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            model: 'command-r', // Fallback to lighter model
+            model: 'command-a-03-2025', // Fallback to lighter model
             messages: [
               { role: 'system', content: template.system },
               { role: 'user', content: template.task(topic, analysis.summary) }
