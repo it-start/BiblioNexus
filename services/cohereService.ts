@@ -7,6 +7,8 @@ import { AnalysisData, AppLanguage, ApologeticsData } from "../types";
  * Powered by Cohere Command R+.
  * Responsible for defending the faith, bridging ancient text to modern culture,
  * and handling "hard questions" (Apologetics).
+ * 
+ * Uses Cohere V2 API via fetch for browser compatibility.
  */
 
 const COHERE_PROMPTS = {
@@ -39,17 +41,15 @@ const COHERE_PROMPTS = {
 };
 
 export class TheApologist {
-  private apiKey: string;
-  private apiUrl = "https://api.cohere.ai/v1/chat";
+  private apiKey: string | undefined;
 
   constructor() {
     // Check both standard VITE_ prefix and standard NODE env vars
-    const key = process.env.VITE_COHERE_API_KEY || process.env.COHERE_API_KEY;
+    this.apiKey = process.env.VITE_COHERE_API_KEY || process.env.COHERE_API_KEY;
     
-    if (!key) {
+    if (!this.apiKey) {
       console.warn("🛡️ COHERE_API_KEY is missing. The Apologist cannot defend.");
     }
-    this.apiKey = key || '';
   }
 
   public async generateDefense(topic: string, analysis: AnalysisData, language: AppLanguage): Promise<ApologeticsData | null> {
@@ -58,7 +58,9 @@ export class TheApologist {
     const template = COHERE_PROMPTS[language] || COHERE_PROMPTS[AppLanguage.ENGLISH];
     
     try {
-      const response = await fetch(this.apiUrl, {
+      // Direct fetch to Cohere V2 API to avoid SDK 404s and browser polyfill issues
+      // Endpoint: https://api.cohere.com/v2/chat
+      const response = await fetch('https://api.cohere.com/v2/chat', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
@@ -66,69 +68,97 @@ export class TheApologist {
           'X-Client-Name': 'BiblioNexus'
         },
         body: JSON.stringify({
-          model: "command-r-03-2025",
-          message: template.task(topic, analysis.summary),
-          preamble: template.system,
+          model: 'command-r-plus', // V2/V1 compatible high-reasoning model
+          messages: [
+            {
+              role: 'system',
+              content: template.system
+            },
+            {
+              role: 'user',
+              content: template.task(topic, analysis.summary),
+            },
+          ],
           temperature: 0.3,
-          response_format: { type: "json_object" } // Enforce JSON
+          response_format: { type: "json_object" }
         })
       });
 
       if (!response.ok) {
-        // Try fallback to command-r if command-r-plus is not available/rate-limited
-        console.warn(`Cohere primary model failed (${response.status}), attempting fallback...`);
-        return this.fallbackDefense(topic, analysis, language);
+        const errText = await response.text();
+        // If 404, it might mean the model isn't available in V2 or the endpoint changed, 
+        // but api.cohere.com/v2/chat is standard.
+        // If 401, key is wrong.
+        throw new Error(`Cohere API Error ${response.status}: ${errText}`);
       }
 
       const data = await response.json();
-      const text = data.text;
+      
+      // V2 Response structure: data.message.content[0].text
+      let content: string | null = null;
+      
+      if (data.message?.content && Array.isArray(data.message.content)) {
+        const textPart = data.message.content.find((p: any) => p.type === 'text');
+        if (textPart) content = textPart.text;
+      }
+
+      if (!content) {
+        throw new Error("Empty response content from Cohere");
+      }
       
       // Parse JSON
       try {
-          return JSON.parse(text) as ApologeticsData;
+          return JSON.parse(content) as ApologeticsData;
       } catch (e) {
           // If direct parse fails, try regex extraction
-          const jsonMatch = text.match(/\{[\s\S]*\}/);
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             return JSON.parse(jsonMatch[0]) as ApologeticsData;
           }
+          throw e;
       }
-      
-      console.warn("🛡️ The Apologist spoke, but not in valid JSON.");
-      return null;
 
     } catch (error) {
       console.error("🔥 The Apologist failed (Cohere Error):", error);
-      return null;
+      console.warn("Attempting fallback...");
+      return this.fallbackDefense(topic, analysis, language);
     }
   }
 
   private async fallbackDefense(topic: string, analysis: AnalysisData, language: AppLanguage): Promise<ApologeticsData | null> {
+    if (!this.apiKey) return null;
     const template = COHERE_PROMPTS[language] || COHERE_PROMPTS[AppLanguage.ENGLISH];
     
     try {
-        const response = await fetch(this.apiUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${this.apiKey}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              model: "command-r", // Fallback model
-              message: template.task(topic, analysis.summary),
-              preamble: template.system,
-              temperature: 0.3
-            })
+        const response = await fetch('https://api.cohere.com/v2/chat', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'command-r', // Fallback to lighter model
+            messages: [
+              { role: 'system', content: template.system },
+              { role: 'user', content: template.task(topic, analysis.summary) }
+            ],
+            temperature: 0.3
+          })
         });
 
-        if (!response.ok) {
-            throw new Error(`Fallback failed with status: ${response.status}`);
+        if (!response.ok) return null;
+        
+        const data = await response.json();
+        let content: string | null = null;
+
+        if (data.message?.content && Array.isArray(data.message.content)) {
+            const textPart = data.message.content.find((p: any) => p.type === 'text');
+            if (textPart) content = textPart.text;
         }
 
-        const data = await response.json();
-        const text = data.text;
-        
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!content) return null;
+
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
             return JSON.parse(jsonMatch[0]) as ApologeticsData;
         }

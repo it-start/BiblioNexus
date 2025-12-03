@@ -6,6 +6,7 @@ interface ParallelsGuideProps {
   language: AppLanguage;
 }
 
+
 export const ParallelsGuide: React.FC<ParallelsGuideProps> = ({ language }) => {
   const [isOpen, setIsOpen] = useState(false);
 
